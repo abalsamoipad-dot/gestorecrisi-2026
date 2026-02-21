@@ -38,14 +38,14 @@ export function Hero() {
 
   const sectionStyle: CSSProperties = {
     position: 'relative',
-    minHeight: '70vh',
+    minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
     background: '#000',
     color: '#fff',
-    padding: '120px 20px 60px',
+    padding: '80px 20px 80px',
     overflow: 'hidden',
     isolation: 'isolate',
   };
