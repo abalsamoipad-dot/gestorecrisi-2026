@@ -91,7 +91,7 @@ export function News() {
     }
 
     async function fetchLocalNews(): Promise<NewsItem[]> {
-      const response = await fetch('/news.json');
+      const response = await fetch(`${import.meta.env.BASE_URL}news.json`);
       if (!response.ok) throw new Error('Failed to fetch local news');
       return response.json();
     }
