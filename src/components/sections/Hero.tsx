@@ -72,6 +72,7 @@ export function Hero() {
     zIndex: 10,
     maxWidth: '950px',
     width: '100%',
+    margin: '0 auto',
   };
 
   const titleStyle: CSSProperties = {
