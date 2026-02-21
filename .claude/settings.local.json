@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gsutil -m cp:*)",
+      "Bash(gcloud:*)",
+      "Bash(brew install:*)",
+      "Bash(curl:*)",
+      "Bash(bash:*)",
+      "Bash(source \"$HOME/google-cloud-sdk/path.bash.inc\")",
+      "Bash(\"$HOME/google-cloud-sdk/bin/gcloud\" --version)",
+      "Bash(/Users/abals/google-cloud-sdk/bin/gcloud --version)",
+      "Bash(/Users/abals/google-cloud-sdk/bin/gcloud auth login:*)",
+      "Bash(/Users/abals/google-cloud-sdk/bin/gsutil -m cp:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vite build)",
+      "Bash(lsof:*)",
+      "Bash(open http://localhost:3000)",
+      "Bash(gh auth status:*)",
+      "Bash(git --version:*)",
+      "Bash(unzip:*)",
+      "Bash(~/bin/gh auth:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Gestore della Crisi - React + Vite + TypeScript\n\nComplete redesign from monolithic HTML to modern React SPA with:\n- Framer Motion animations \\(parallax, 3D tilt, stagger reveals\\)\n- Glassmorphism UI, animated counters, live RSS news feed\n- Premium FAQ with category icons and hover effects\n- Responsive design with mobile-first approach\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}
