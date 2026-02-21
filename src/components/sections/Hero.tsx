@@ -45,7 +45,7 @@ export function Hero() {
     textAlign: 'center',
     background: '#000',
     color: '#fff',
-    padding: '60px 20px',
+    padding: '120px 20px 60px',
     overflow: 'hidden',
     isolation: 'isolate',
   };
