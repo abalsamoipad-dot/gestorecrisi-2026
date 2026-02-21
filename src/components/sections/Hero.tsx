@@ -1,6 +1,5 @@
 import { useRef, type CSSProperties } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { GradientText } from '@/components/ui/GradientText';
 import { HERO_BENEFITS } from '@/constants';
@@ -25,6 +24,7 @@ const PARTICLES = [
 /**
  * Full-viewport hero section with video background, parallax scrolling,
  * animated gradient overlay, staggered word animations, and floating particles.
+ * Uses absolute positioning for content centering to avoid container conflicts.
  */
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -38,14 +38,10 @@ export function Hero() {
 
   const sectionStyle: CSSProperties = {
     position: 'relative',
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
+    height: '70vh',
+    minHeight: '500px',
     background: '#000',
     color: '#fff',
-    padding: '80px 20px 80px',
     overflow: 'hidden',
     isolation: 'isolate',
   };
@@ -67,12 +63,16 @@ export function Hero() {
     animation: 'hero-gradient-shift 12s ease infinite',
   };
 
-  const heroInnerStyle: CSSProperties = {
-    position: 'relative',
-    zIndex: 10,
+  /* Absolute centering: no dependency on Container or flex parent */
+  const contentWrapperStyle: CSSProperties = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90%',
     maxWidth: '950px',
-    width: '100%',
-    margin: '0 auto',
+    textAlign: 'center',
+    zIndex: 10,
   };
 
   const titleStyle: CSSProperties = {
@@ -175,134 +175,132 @@ export function Hero() {
         />
       ))}
 
-      {/* Hero Content */}
-      <Container>
-        <div style={heroInnerStyle}>
-          {/* Animated Title */}
-          <h1 style={titleStyle}>
-            {/* Line 1 */}
-            <span style={{ display: 'block' }}>
-              {TITLE_WORDS_LINE1.map((word, i) => (
-                <motion.span
-                  key={`l1-${i}`}
-                  initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  transition={{
-                    duration: 0.6,
-                    delay: 0.3 + i * 0.08,
-                    ease: EASE,
-                  }}
-                  style={{ display: 'inline-block', marginRight: '0.3em' }}
-                >
-                  {word}
-                </motion.span>
-              ))}
-            </span>
-            {/* Line 2 */}
-            <span style={{ display: 'block', marginTop: '4px' }}>
-              {TITLE_WORDS_LINE2_PREFIX.map((word, i) => (
-                <motion.span
-                  key={`l2-${i}`}
-                  initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  transition={{
-                    duration: 0.6,
-                    delay: 0.3 + (line2StartIndex + i) * 0.08,
-                    ease: EASE,
-                  }}
-                  style={{ display: 'inline-block', marginRight: '0.3em' }}
-                >
-                  {word}
-                </motion.span>
-              ))}
+      {/* Hero Content — absolutely centered */}
+      <div style={contentWrapperStyle}>
+        {/* Animated Title */}
+        <h1 style={titleStyle}>
+          {/* Line 1 */}
+          <span style={{ display: 'block' }}>
+            {TITLE_WORDS_LINE1.map((word, i) => (
               <motion.span
+                key={`l1-${i}`}
                 initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{
                   duration: 0.6,
-                  delay: 0.3 + gradientWordIndex * 0.08,
+                  delay: 0.3 + i * 0.08,
                   ease: EASE,
                 }}
-                style={{ display: 'inline' }}
+                style={{ display: 'inline-block', marginRight: '0.3em' }}
               >
-                <GradientText from="#48cae4" to="#90e0ef" animate>
-                  Risanamento e la Continuit&agrave; d&rsquo;Impresa.
-                </GradientText>
+                {word}
               </motion.span>
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <motion.p
-            style={subtitleStyle}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.2, ease: EASE }}
-          >
-            Supportiamo imprenditori e management nella gestione strutturata della crisi,
-            dalla diagnosi iniziale fino alla definizione di un percorso di risanamento
-            concreto e personalizzato.
-          </motion.p>
-
-          {/* Benefits Row */}
-          <motion.div
-            style={benefitsRowStyle}
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.1,
-                  delayChildren: 1.5,
-                },
-              },
-            }}
-          >
-            {HERO_BENEFITS.map((benefit, i) => (
-              <motion.div
-                key={i}
-                style={benefitStyle}
-                variants={{
-                  hidden: { opacity: 0, y: 15 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: { duration: 0.5, ease: EASE },
-                  },
-                }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={checkmarkStyle}
-                  aria-hidden="true"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span>{benefit}</span>
-              </motion.div>
             ))}
-          </motion.div>
+          </span>
+          {/* Line 2 */}
+          <span style={{ display: 'block', marginTop: '4px' }}>
+            {TITLE_WORDS_LINE2_PREFIX.map((word, i) => (
+              <motion.span
+                key={`l2-${i}`}
+                initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.3 + (line2StartIndex + i) * 0.08,
+                  ease: EASE,
+                }}
+                style={{ display: 'inline-block', marginRight: '0.3em' }}
+              >
+                {word}
+              </motion.span>
+            ))}
+            <motion.span
+              initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{
+                duration: 0.6,
+                delay: 0.3 + gradientWordIndex * 0.08,
+                ease: EASE,
+              }}
+              style={{ display: 'inline' }}
+            >
+              <GradientText from="#48cae4" to="#90e0ef" animate>
+                Risanamento e la Continuit&agrave; d&rsquo;Impresa.
+              </GradientText>
+            </motion.span>
+          </span>
+        </h1>
 
-          {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 2.0, ease: EASE }}
-          >
-            <Button variant="primary" size="lg" href="#contact">
-              Richiedi Primo Contatto
-            </Button>
-          </motion.div>
-        </div>
-      </Container>
+        {/* Subtitle */}
+        <motion.p
+          style={subtitleStyle}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 1.2, ease: EASE }}
+        >
+          Supportiamo imprenditori e management nella gestione strutturata della crisi,
+          dalla diagnosi iniziale fino alla definizione di un percorso di risanamento
+          concreto e personalizzato.
+        </motion.p>
+
+        {/* Benefits Row */}
+        <motion.div
+          style={benefitsRowStyle}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.1,
+                delayChildren: 1.5,
+              },
+            },
+          }}
+        >
+          {HERO_BENEFITS.map((benefit, i) => (
+            <motion.div
+              key={i}
+              style={benefitStyle}
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.5, ease: EASE },
+                },
+              }}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={checkmarkStyle}
+                aria-hidden="true"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>{benefit}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* CTA Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 2.0, ease: EASE }}
+        >
+          <Button variant="primary" size="lg" href="#contact">
+            Richiedi Primo Contatto
+          </Button>
+        </motion.div>
+      </div>
     </section>
   );
 }
