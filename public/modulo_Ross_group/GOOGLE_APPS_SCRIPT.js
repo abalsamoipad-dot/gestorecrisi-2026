@@ -126,7 +126,10 @@ var COLUMN_MAP = [
 ];
 
 /**
- * Gestisce le richieste POST dal questionario web
+ * Gestisce le richieste POST dal questionario web.
+ * Supporta due modalità di ricezione dati:
+ *   1. Form submission (e.parameter.payload) — metodo principale, più affidabile
+ *   2. JSON body (e.postData.contents) — metodo alternativo/fallback
  */
 function doPost(e) {
   try {
@@ -136,7 +139,17 @@ function doPost(e) {
       sheet.setName('Risposte');
     }
 
-    var data = JSON.parse(e.postData.contents);
+    // Prova prima il form field 'payload', poi il JSON body diretto
+    var rawData;
+    if (e.parameter && e.parameter.payload) {
+      rawData = e.parameter.payload;
+    } else if (e.postData && e.postData.contents) {
+      rawData = e.postData.contents;
+    } else {
+      throw new Error('Nessun dato ricevuto nella richiesta');
+    }
+
+    var data = JSON.parse(rawData);
 
     // Costruisce la riga nell'ordine corretto delle colonne
     var row = COLUMN_MAP.map(function(key) {

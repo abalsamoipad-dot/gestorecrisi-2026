@@ -1733,18 +1733,7 @@ async function submitForm() {
   }
 
   try {
-    // Usa 'text/plain' perché è un CORS-safe header: con mode 'no-cors'
-    // il browser invia effettivamente il body (con 'application/json' lo strippa).
-    // Google Apps Script riceve il JSON in e.postData.contents e lo parsa ugualmente.
-    await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-    });
-
-    // Con mode: 'no-cors' la response è opaque (status 0), quindi non possiamo
-    // leggere il risultato, ma il dato arriva comunque a Google Sheets.
+    await submitViaIframe(CONFIG.GOOGLE_SCRIPT_URL, payload);
     state.currentStep++;
     render();
   } catch (error) {
@@ -1753,6 +1742,54 @@ async function submitForm() {
     btn.innerHTML = 'Invia questionario ' + ICONS.arrowRight;
     alert('Si è verificato un errore durante l\'invio. Riprova o contatta l\'amministratore.');
   }
+}
+
+// ──────────────────────────────────────────────
+// INVIO VIA IFRAME — aggira CORS e redirect 302
+// Google Apps Script risponde con un redirect che
+// trasforma il POST in GET perdendo il body.
+// Il form submission via iframe gestisce i redirect
+// correttamente e il dato arriva al doPost().
+// ──────────────────────────────────────────────
+function submitViaIframe(url, payload) {
+  return new Promise((resolve) => {
+    // Crea iframe nascosto
+    const iframeName = 'gsheet_iframe_' + Date.now();
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    // Crea form con campo hidden che contiene il JSON
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = iframeName;
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+
+    // Non possiamo leggere la risposta cross-origin dell'iframe,
+    // quindi risolviamo dopo un timeout ragionevole
+    const cleanup = () => {
+      try { document.body.removeChild(form); } catch (e) { /* già rimosso */ }
+      try { document.body.removeChild(iframe); } catch (e) { /* già rimosso */ }
+    };
+
+    iframe.addEventListener('load', () => {
+      setTimeout(() => { cleanup(); resolve(); }, 500);
+    });
+
+    // Fallback timeout nel caso l'evento load non scatti
+    setTimeout(() => { cleanup(); resolve(); }, 5000);
+
+    form.submit();
+  });
 }
 
 // ──────────────────────────────────────────────
