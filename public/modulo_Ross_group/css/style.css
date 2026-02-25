@@ -1020,6 +1020,77 @@ input[type="date"] {
   margin-bottom: 4px;
 }
 
+/* ---------- GLOSSARY TOOLTIPS ---------- */
+.glossary-term {
+  border-bottom: 1.5px dashed var(--accent-400);
+  color: var(--accent-300);
+  cursor: help;
+  position: relative;
+  transition: color 0.2s;
+}
+.glossary-term:hover,
+.glossary-term:focus {
+  color: #fff;
+}
+.glossary-term::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 10px 14px;
+  border-radius: 10px;
+  width: max-content;
+  max-width: 300px;
+  white-space: normal;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  backdrop-filter: blur(16px);
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+.glossary-term::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--border-accent);
+  z-index: 1001;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+.glossary-term:hover::after,
+.glossary-term:focus::after,
+.glossary-term:hover::before,
+.glossary-term:focus::before {
+  opacity: 1;
+  visibility: visible;
+}
+/* Tooltip flip: se troppo in alto, mostra sotto */
+.glossary-term.tooltip-bottom::after {
+  bottom: auto;
+  top: calc(100% + 10px);
+}
+.glossary-term.tooltip-bottom::before {
+  bottom: auto;
+  top: calc(100% + 4px);
+  border-top-color: transparent;
+  border-bottom-color: var(--border-accent);
+}
+
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 768px) {
   .glass-card {
@@ -1053,6 +1124,17 @@ input[type="date"] {
 
   .progress-container {
     padding: 10px 16px;
+  }
+
+  .glossary-term::after {
+    max-width: 250px;
+    left: 0;
+    transform: none;
+    font-size: 0.72rem;
+  }
+  .glossary-term::before {
+    left: 20px;
+    transform: none;
   }
 }
 

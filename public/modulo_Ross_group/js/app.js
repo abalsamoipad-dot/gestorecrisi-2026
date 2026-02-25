@@ -26,6 +26,41 @@ const ICONS = {
 };
 
 // ──────────────────────────────────────────────
+// GLOSSARIO TERMINI TECNICI (tooltip)
+// ──────────────────────────────────────────────
+const GLOSSARY = {
+  'Z-report': 'Riepilogo fiscale di fine giornata stampato dal registratore di cassa. Riassume tutti gli incassi, i reparti e i totali IVA della giornata.',
+  'Z-Report': 'Riepilogo fiscale di fine giornata stampato dal registratore di cassa. Riassume tutti gli incassi, i reparti e i totali IVA della giornata.',
+  'SOP': 'Standard Operating Procedure — procedura operativa standard: un documento che descrive passo-passo come svolgere un\'attività in modo uniforme.',
+  'POS': 'Point of Sale — punto vendita/cassa. Indica sia il terminale per pagamenti con carta sia il sistema di gestione vendite.',
+  'DDT': 'Documento di Trasporto — documento fiscale che accompagna la merce durante il trasporto, attestando mittente, destinatario e contenuto.',
+  'LIPE': 'Liquidazioni Periodiche IVA — comunicazione trimestrale obbligatoria all\'Agenzia delle Entrate con i dati delle liquidazioni IVA.',
+  'IVA': 'Imposta sul Valore Aggiunto — imposta indiretta sui beni e servizi applicata in ogni fase della filiera produttiva/distributiva.',
+  'IBAN': 'International Bank Account Number — codice internazionale che identifica univocamente un conto corrente bancario.',
+  'RiBa': 'Ricevuta Bancaria — strumento di pagamento con cui il creditore incarica la banca di incassare un importo dal debitore a scadenza.',
+  'SDD': 'SEPA Direct Debit — addebito diretto europeo: il creditore preleva automaticamente l\'importo dal conto del debitore previa autorizzazione.',
+  'shrinkage': 'Termine inglese per "ammanchi" — indica la differenza tra le giacenze teoriche e quelle reali, causata da furti, errori o deterioramento.',
+  'Shrinkage': 'Termine inglese per "ammanchi" — indica la differenza tra le giacenze teoriche e quelle reali, causata da furti, errori o deterioramento.',
+  'Cloud': 'Sistema di archiviazione online (es. Google Drive, Dropbox) — i file sono salvati su server remoti accessibili via internet.',
+  'NAS': 'Network Attached Storage — dispositivo di archiviazione collegato alla rete locale, usato come server di backup o condivisione file.',
+  'ERP': 'Enterprise Resource Planning — software gestionale integrato che collega vendite, magazzino, contabilità e altri processi aziendali.',
+  'audit': 'Verifica sistematica e indipendente di processi, conti o conformità normativa, svolta da soggetti interni o esterni all\'azienda.',
+  'Audit': 'Verifica sistematica e indipendente di processi, conti o conformità normativa, svolta da soggetti interni o esterni all\'azienda.',
+  'escalation': 'Procedura di segnalazione verso un livello gerarchico superiore quando si riscontra un problema che non può essere risolto autonomamente.',
+  'Escalation': 'Procedura di segnalazione verso un livello gerarchico superiore quando si riscontra un problema che non può essere risolto autonomamente.',
+  'quick win': 'Azione migliorativa rapida e a basso costo che produce risultati visibili in tempi brevi, senza interventi strutturali complessi.',
+  'SS/FW': 'Spring-Summer / Fall-Winter — le due stagioni principali delle collezioni moda: Primavera-Estate e Autunno-Inverno.',
+  'Black Friday': 'Giornata promozionale di fine novembre con forti sconti, originaria degli USA e ormai diffusa a livello globale.',
+  'barcode': 'Codice a barre — sequenza di linee e spazi stampata sulle etichette dei prodotti, letta da scanner per identificare l\'articolo.',
+  'fidelity card': 'Carta fedeltà — tessera che accumula punti o dà diritto a sconti dedicati per incentivare il cliente a tornare.',
+  'Fidelity card': 'Carta fedeltà — tessera che accumula punti o dà diritto a sconti dedicati per incentivare il cliente a tornare.',
+  'voucher': 'Buono / credito cartaceo o digitale utilizzabile per un acquisto futuro, spesso emesso come alternativa al rimborso.',
+  'stakeholder': 'Soggetto portatore di interessi rispetto all\'azienda: soci, dipendenti, fornitori, clienti, banche, enti pubblici.',
+  'OAC': 'Organizzativi, Amministrativi e Contabili — i tre ambiti degli assetti aziendali che il Codice della Crisi impone di adeguare.',
+  'CCII': 'Codice della Crisi d\'Impresa e dell\'Insolvenza (D.Lgs. 14/2019) — normativa che disciplina prevenzione della crisi e procedure concorsuali.',
+};
+
+// ──────────────────────────────────────────────
 // MODULI SELEZIONABILI (Dashboard)
 // ──────────────────────────────────────────────
 const MODULES = [
@@ -858,7 +893,61 @@ function render() {
 
   container.appendChild(stepEl);
   updateProgress();
+  applyTooltips(container);
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ──────────────────────────────────────────────
+// TOOLTIP — evidenzia termini tecnici nel DOM
+// ──────────────────────────────────────────────
+function applyTooltips(root) {
+  // Selettori dove cercare i termini (label, opzioni, helper, subtitle)
+  const targets = root.querySelectorAll('.field-label, .option-text, .field-helper, .step-subtitle, .welcome-info p, .review-question, .module-desc');
+
+  // Regex con tutti i termini — ordina dal più lungo al più corto per evitare match parziali
+  const terms = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
+  const regex = new RegExp('\\b(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'g');
+
+  targets.forEach(target => {
+    const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT, null, false);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    textNodes.forEach(node => {
+      const text = node.textContent;
+      if (!regex.test(text)) return;
+      regex.lastIndex = 0; // reset
+
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      let match;
+
+      regex.lastIndex = 0;
+      while ((match = regex.exec(text)) !== null) {
+        // Testo prima del match
+        if (match.index > lastIndex) {
+          fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+        // Termine con tooltip
+        const span = document.createElement('span');
+        span.className = 'glossary-term';
+        span.textContent = match[0];
+        span.setAttribute('data-tooltip', GLOSSARY[match[0]]);
+        span.setAttribute('tabindex', '0');
+        span.setAttribute('role', 'button');
+        span.setAttribute('aria-label', match[0] + ': ' + GLOSSARY[match[0]]);
+        fragment.appendChild(span);
+        lastIndex = regex.lastIndex;
+      }
+
+      // Testo dopo l'ultimo match
+      if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+      }
+
+      node.parentNode.replaceChild(fragment, node);
+    });
+  });
 }
 
 // ──────────────────────────────────────────────
@@ -1644,13 +1733,18 @@ async function submitForm() {
   }
 
   try {
-    const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+    // Usa 'text/plain' perché è un CORS-safe header: con mode 'no-cors'
+    // il browser invia effettivamente il body (con 'application/json' lo strippa).
+    // Google Apps Script riceve il JSON in e.postData.contents e lo parsa ugualmente.
+    await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
     });
 
+    // Con mode: 'no-cors' la response è opaque (status 0), quindi non possiamo
+    // leggere il risultato, ma il dato arriva comunque a Google Sheets.
     state.currentStep++;
     render();
   } catch (error) {
