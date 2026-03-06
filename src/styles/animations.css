@@ -68,6 +68,15 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* Coin spin — 4 full rotations with decreasing wobble (like a coin settling on a table) */
+@keyframes coin-spin {
+  0%   { transform: perspective(600px) rotateY(0deg)    rotateX(0deg)  scale(1.08); }
+  25%  { transform: perspective(600px) rotateY(360deg)  rotateX(7deg)  scale(1.08); }
+  50%  { transform: perspective(600px) rotateY(720deg)  rotateX(-4deg) scale(1.08); }
+  75%  { transform: perspective(600px) rotateY(1080deg) rotateX(2deg)  scale(1.08); }
+  100% { transform: perspective(600px) rotateY(1440deg) rotateX(0deg)  scale(1.08); }
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

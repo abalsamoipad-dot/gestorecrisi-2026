@@ -114,8 +114,17 @@ function TeamCard({ name, role, bio }: TeamCardProps) {
     boxShadow: isHovered
       ? '0 8px 24px rgba(72,202,228,0.2)'
       : '0 4px 16px rgba(0,0,0,0.2)',
-    transform: isHovered ? 'scale(1.08)' : 'scale(1)',
-    transition: 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+    transformStyle: 'preserve-3d',
+    willChange: 'transform',
+    /* When hovered: coin-spin animation takes control of transform.
+       When not hovered: smooth transition back to default scale. */
+    animation: isHovered
+      ? 'coin-spin 2s cubic-bezier(0.12, 0.8, 0.25, 1)'
+      : 'none',
+    transform: isHovered
+      ? 'perspective(600px) rotateY(0deg) scale(1.08)'
+      : 'perspective(600px) rotateY(0deg) scale(1)',
+    transition: !isHovered ? 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
     fontSize: '1.6rem',
     fontWeight: 700,
     color: '#fff',
