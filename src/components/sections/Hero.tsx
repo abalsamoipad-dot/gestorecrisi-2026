@@ -42,7 +42,6 @@ export function Hero() {
     background: '#000',
     color: '#fff',
     overflow: 'clip',
-    isolation: 'isolate',
     WebkitTransform: 'translateZ(0)',
     display: 'flex',
     alignItems: 'center',
@@ -52,14 +51,14 @@ export function Hero() {
   const videoWrapperStyle: CSSProperties = {
     position: 'absolute',
     inset: 0,
-    zIndex: -2,
+    zIndex: 1,
     overflow: 'hidden',
   };
 
   const overlayStyle: CSSProperties = {
     position: 'absolute',
     inset: 0,
-    zIndex: -1,
+    zIndex: 2,
     background:
       'linear-gradient(135deg, rgba(0,40,50,0.85) 0%, rgba(0,95,115,0.7) 40%, rgba(72,202,228,0.4) 70%, rgba(0,40,50,0.8) 100%)',
     backgroundSize: '400% 400%',
@@ -170,7 +169,7 @@ export function Hero() {
             borderRadius: '50%',
             background: 'rgba(72,202,228,0.15)',
             animation: `${p.animation} ${p.duration} ease-in-out infinite`,
-            zIndex: 1,
+            zIndex: 3,
           }}
         />
       ))}

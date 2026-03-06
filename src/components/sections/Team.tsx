@@ -82,26 +82,41 @@ interface TeamCardProps {
   index: number;
 }
 
-function TeamCard({ name, role, bio, imageSrc, imageAlt }: TeamCardProps) {
+function TeamCard({ name, role, bio }: TeamCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+
+  // Extract initials from name
+  const initials = name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   const articleStyle: CSSProperties = {
     padding: '20px 0',
   };
 
-  const photoStyle: CSSProperties = {
-    width: '160px',
-    height: '160px',
+  const avatarStyle: CSSProperties = {
+    width: '120px',
+    height: '120px',
     borderRadius: '50%',
-    objectFit: 'cover',
     margin: '0 auto 20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, var(--primary-700, #005f73), var(--accent-400, #48cae4))',
     border: isHovered ? '3px solid rgba(72,202,228,0.4)' : '3px solid transparent',
     boxShadow: isHovered
       ? '0 12px 40px rgba(0,95,115,0.25), 0 0 30px rgba(72,202,228,0.15)'
       : '0 8px 32px rgba(0,95,115,0.15)',
     transform: isHovered ? 'scale(1.08)' : 'scale(1)',
     transition: 'all 0.5s ease',
-    display: 'block',
+    fontSize: '2.2rem',
+    fontWeight: 700,
+    color: '#fff',
+    fontFamily: "var(--font-serif, 'Lora', serif)",
+    letterSpacing: '0.05em',
   };
 
   const nameStyle: CSSProperties = {
@@ -138,14 +153,7 @@ function TeamCard({ name, role, bio, imageSrc, imageAlt }: TeamCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <img
-        src={imageSrc}
-        alt={imageAlt}
-        style={photoStyle}
-        loading="lazy"
-        width={160}
-        height={160}
-      />
+      <div style={avatarStyle} aria-hidden="true">{initials}</div>
       <h3 style={nameStyle}>{name}</h3>
       <p style={roleStyle}>{role}</p>
       <p style={bioStyle}>{bio}</p>
