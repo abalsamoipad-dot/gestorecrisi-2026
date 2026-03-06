@@ -38,13 +38,15 @@ export function Hero() {
 
   const sectionStyle: CSSProperties = {
     position: 'relative',
-    height: '70vh',
-    minHeight: '500px',
+    minHeight: '70vh',
     background: '#000',
     color: '#fff',
     overflow: 'clip',
     isolation: 'isolate',
     WebkitTransform: 'translateZ(0)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const videoWrapperStyle: CSSProperties = {
@@ -64,16 +66,13 @@ export function Hero() {
     animation: 'hero-gradient-shift 12s ease infinite',
   };
 
-  /* Absolute centering: no dependency on Container or flex parent */
   const contentWrapperStyle: CSSProperties = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    position: 'relative',
     width: '90%',
     maxWidth: '950px',
     textAlign: 'center',
     zIndex: 10,
+    padding: '80px 0 40px',
   };
 
   const titleStyle: CSSProperties = {
@@ -82,14 +81,14 @@ export function Hero() {
     fontWeight: 700,
     lineHeight: 1.15,
     textShadow: '0 2px 20px rgba(0,0,0,0.8)',
-    marginBottom: '24px',
+    marginBottom: 'clamp(12px, 3vw, 24px)',
   };
 
   const subtitleStyle: CSSProperties = {
     fontFamily: "var(--font-sans, 'Inter', sans-serif)",
-    fontSize: '1.15rem',
+    fontSize: 'clamp(0.95rem, 2.5vw, 1.15rem)',
     maxWidth: '800px',
-    margin: '0 auto 40px',
+    margin: '0 auto clamp(20px, 4vw, 40px)',
     lineHeight: 1.6,
     textShadow: '0 1px 10px rgba(0,0,0,0.5)',
     color: 'rgba(255,255,255,0.85)',
@@ -100,9 +99,9 @@ export function Hero() {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '30px',
+    gap: 'clamp(10px, 3vw, 30px)',
     flexWrap: 'wrap',
-    marginBottom: '40px',
+    marginBottom: 'clamp(20px, 4vw, 40px)',
   };
 
   const benefitStyle: CSSProperties = {
