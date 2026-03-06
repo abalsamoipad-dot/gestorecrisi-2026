@@ -42,8 +42,9 @@ export function Hero() {
     minHeight: '500px',
     background: '#000',
     color: '#fff',
-    overflow: 'hidden',
+    overflow: 'clip',
     isolation: 'isolate',
+    WebkitTransform: 'translateZ(0)',
   };
 
   const videoWrapperStyle: CSSProperties = {
