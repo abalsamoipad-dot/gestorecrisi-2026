@@ -9,7 +9,7 @@ export const NAV_ITEMS = [
   { id: 'faq', label: 'FAQ CCII' },
   { id: 'team', label: 'Il Team' },
   { id: 'news', label: 'Aggiornamenti' },
-  { id: 'contact', label: 'Analisi Riservata', isCta: true },
+  { id: 'contact', label: 'Prima Consulenza', isCta: true },
 ] as const;
 
 export const HERO_BENEFITS = [
