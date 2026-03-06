@@ -130,7 +130,7 @@ export function News() {
 
   const sectionStyle: CSSProperties = {
     padding: '100px 0',
-    background: 'var(--white, #ffffff)',
+    background: 'linear-gradient(180deg, #f8fafb 0%, #ffffff 30%)',
   };
 
   const gridStyle: CSSProperties = {

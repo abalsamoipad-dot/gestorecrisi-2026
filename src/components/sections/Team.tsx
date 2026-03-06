@@ -5,63 +5,51 @@ import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import { TEAM_MEMBERS } from '@/constants';
 
 /**
- * Team section displaying team members in a responsive grid.
- * Each member card features a floating animation, hover-enhanced photo effects,
- * and scroll-triggered reveal animations.
+ * Team section – dark background with 3-column horizontal layout.
+ * Each member card features initials avatar with hover effects.
  */
 export function Team() {
   const sectionStyle: CSSProperties = {
     padding: '100px 0',
-    background: 'var(--neutral-50, #f9fafb)',
+    position: 'relative',
+    overflow: 'hidden',
+    background: [
+      'radial-gradient(ellipse at 30% 50%, rgba(0,95,115,0.3) 0%, transparent 50%)',
+      'radial-gradient(ellipse at 80% 30%, rgba(72,202,228,0.1) 0%, transparent 40%)',
+      'linear-gradient(180deg, #0a1218 0%, #0d1f26 50%, #0a1218 100%)',
+    ].join(', '),
   };
 
-  const gridStyle: CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '40px',
-    textAlign: 'center',
-  };
+  const responsiveCss = `
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+    @media (max-width: 768px) {
+      .team-grid {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+      }
+    }
+  `;
 
   return (
     <section id="team" style={sectionStyle}>
-      {/* Responsive styles: disable float animation on mobile / reduced-motion */}
-      <style>{`
-        .team-member-float {
-          animation: team-float 4s ease-in-out infinite;
-        }
-        .team-member-float:nth-child(2) {
-          animation-delay: -1.3s;
-        }
-        .team-member-float:nth-child(3) {
-          animation-delay: -2.6s;
-        }
-        @media (max-width: 640px) {
-          .team-member-float {
-            animation: none;
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .team-member-float {
-            animation: none;
-          }
-        }
-      `}</style>
-
+      <style>{responsiveCss}</style>
       <Container>
         <SectionHeader
           kicker="Il Nostro Team"
           title="Professionisti al servizio della continuità"
+          dark
         />
-        <div style={gridStyle}>
+        <div className="team-grid">
           {TEAM_MEMBERS.map((member, i) => (
             <RevealOnScroll key={i} delay={i * 0.15}>
               <TeamCard
                 name={member.name}
                 role={member.role}
                 bio={member.bio}
-                imageSrc={member.imageSrc}
-                imageAlt={member.imageAlt}
-                index={i}
               />
             </RevealOnScroll>
           ))}
@@ -77,15 +65,11 @@ interface TeamCardProps {
   name: string;
   role: string;
   bio: string;
-  imageSrc: string;
-  imageAlt: string;
-  index: number;
 }
 
 function TeamCard({ name, role, bio }: TeamCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Extract initials from name
   const initials = name
     .split(' ')
     .map((w) => w[0])
@@ -93,26 +77,46 @@ function TeamCard({ name, role, bio }: TeamCardProps) {
     .slice(0, 2)
     .toUpperCase();
 
-  const articleStyle: CSSProperties = {
-    padding: '20px 0',
+  const cardStyle: CSSProperties = {
+    background: isHovered
+      ? 'rgba(255,255,255,0.08)'
+      : 'rgba(255,255,255,0.04)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: isHovered
+      ? '1px solid rgba(72,202,228,0.25)'
+      : '1px solid rgba(255,255,255,0.06)',
+    borderRadius: '20px',
+    padding: '36px 28px',
+    textAlign: 'center',
+    transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+    transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
+    boxShadow: isHovered
+      ? '0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(72,202,228,0.08)'
+      : '0 4px 12px rgba(0,0,0,0.1)',
+    cursor: 'default',
   };
 
   const avatarStyle: CSSProperties = {
-    width: '120px',
-    height: '120px',
+    width: '88px',
+    height: '88px',
     borderRadius: '50%',
     margin: '0 auto 20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, var(--primary-700, #005f73), var(--accent-400, #48cae4))',
-    border: isHovered ? '3px solid rgba(72,202,228,0.4)' : '3px solid transparent',
+    background: isHovered
+      ? 'linear-gradient(135deg, var(--accent-400, #48cae4), var(--primary-700, #005f73))'
+      : 'linear-gradient(135deg, var(--primary-700, #005f73), var(--accent-400, #48cae4))',
+    border: isHovered
+      ? '2px solid rgba(72,202,228,0.4)'
+      : '2px solid rgba(255,255,255,0.1)',
     boxShadow: isHovered
-      ? '0 12px 40px rgba(0,95,115,0.25), 0 0 30px rgba(72,202,228,0.15)'
-      : '0 8px 32px rgba(0,95,115,0.15)',
+      ? '0 8px 24px rgba(72,202,228,0.2)'
+      : '0 4px 16px rgba(0,0,0,0.2)',
     transform: isHovered ? 'scale(1.08)' : 'scale(1)',
-    transition: 'all 0.5s ease',
-    fontSize: '2.2rem',
+    transition: 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+    fontSize: '1.6rem',
     fontWeight: 700,
     color: '#fff',
     fontFamily: "var(--font-serif, 'Lora', serif)",
@@ -121,35 +125,34 @@ function TeamCard({ name, role, bio }: TeamCardProps) {
 
   const nameStyle: CSSProperties = {
     fontFamily: "var(--font-serif, 'Lora', serif)",
-    fontSize: '1.3rem',
+    fontSize: '1.2rem',
     fontWeight: 700,
-    color: 'var(--text-primary, #111827)',
-    marginBottom: '5px',
+    color: '#fff',
+    marginBottom: '6px',
   };
 
   const roleStyle: CSSProperties = {
     fontFamily: "var(--font-sans, 'Inter', sans-serif)",
-    fontSize: '0.85rem',
+    fontSize: '0.8rem',
     fontWeight: 600,
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    color: 'var(--primary-700, #005f73)',
-    marginBottom: '15px',
+    letterSpacing: '0.08em',
+    color: 'var(--accent-400, #48cae4)',
+    marginBottom: '14px',
   };
 
   const bioStyle: CSSProperties = {
     fontFamily: "var(--font-sans, 'Inter', sans-serif)",
     fontSize: '14px',
     lineHeight: 1.7,
-    color: 'var(--text-secondary, #6b7280)',
-    maxWidth: '340px',
+    color: 'rgba(255,255,255,0.55)',
+    maxWidth: '320px',
     margin: '0 auto',
   };
 
   return (
     <article
-      className="team-member-float"
-      style={articleStyle}
+      style={cardStyle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
