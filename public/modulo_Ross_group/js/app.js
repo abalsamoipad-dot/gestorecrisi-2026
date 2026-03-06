@@ -166,13 +166,6 @@ const STEPS = [
         options: ['Meno di 6 mesi', 'Da 6 mesi a 2 anni', 'Da 2 a 5 anni', 'Oltre 5 anni'],
         required: true,
       },
-      {
-        key: 'intervistatore',
-        type: 'radio',
-        label: 'Intervistatore',
-        options: ['Dott. Balsamo Antonio', 'Dott. Marotta Giuseppe', 'Questionario compilato in autonomia'],
-        required: true,
-      },
     ],
   },
 
