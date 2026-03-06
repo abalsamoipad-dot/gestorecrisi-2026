@@ -39,7 +39,6 @@ export function Expertise() {
                 iconPath={card.iconPath}
                 title={card.title}
                 description={card.description}
-                isWide={i === EXPERTISE_DATA.length - 1 && EXPERTISE_DATA.length % 2 !== 0}
               />
             </RevealOnScroll>
           ))}
@@ -53,10 +52,9 @@ interface ExpertiseCardInternalProps {
   iconPath: string;
   title: string;
   description: string;
-  isWide?: boolean;
 }
 
-function ExpertiseCard({ iconPath, title, description, isWide }: ExpertiseCardInternalProps) {
+function ExpertiseCard({ iconPath, title, description }: ExpertiseCardInternalProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const cardStyle: CSSProperties = {
@@ -74,9 +72,6 @@ function ExpertiseCard({ iconPath, title, description, isWide }: ExpertiseCardIn
     transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
     transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
     cursor: 'default',
-    gridColumn: isWide ? '1 / -1' : undefined,
-    maxWidth: isWide ? '600px' : undefined,
-    margin: isWide ? '0 auto' : undefined,
   };
 
   const iconContainerStyle: CSSProperties = {

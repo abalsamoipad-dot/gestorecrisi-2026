@@ -235,7 +235,7 @@ export default function Header({ onOpenVip }: HeaderProps) {
                   size="md"
                   style={{
                     fontSize: '13px',
-                    padding: '8px 20px',
+                    padding: '10px 22px',
                     borderRadius: '50px',
                   }}
                 >
@@ -250,25 +250,34 @@ export default function Header({ onOpenVip }: HeaderProps) {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '8px 20px',
+                  padding: '10px 22px',
                   fontSize: '13px',
                   fontWeight: 600,
                   fontFamily: "var(--font-sans, 'Inter', sans-serif)",
-                  color: '#92700a',
-                  background: 'linear-gradient(135deg, #f5e6b8, #d4a944, #f5e6b8)',
-                  backgroundSize: '200% auto',
-                  animation: 'gold-shimmer 3s linear infinite',
-                  border: '1px solid rgba(180, 140, 40, 0.4)',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  background: 'linear-gradient(135deg, #0d1b2a 0%, #1b2d45 100%)',
+                  border: '1px solid rgba(212, 169, 68, 0.3)',
                   borderRadius: '50px',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  boxShadow: '0 0 12px rgba(212, 169, 68, 0.2)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                   lineHeight: 1.2,
+                  letterSpacing: '0.03em',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(212, 169, 68, 0.6)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(212, 169, 68, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(212, 169, 68, 0.3)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
                 aria-label="Accedi all'Area Riservata"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="rgba(212, 169, 68, 0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
