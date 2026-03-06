@@ -105,7 +105,11 @@ const hamburgerStyle: CSSProperties = {
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
-export default function Header() {
+interface HeaderProps {
+  onOpenVip: () => void;
+}
+
+export default function Header({ onOpenVip }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('home');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -238,6 +242,38 @@ export default function Header() {
                   {ctaItem.label}
                 </Button>
               )}
+
+              {/* VIP Area Button */}
+              <button
+                onClick={onOpenVip}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 20px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  fontFamily: "var(--font-sans, 'Inter', sans-serif)",
+                  color: '#92700a',
+                  background: 'linear-gradient(135deg, #f5e6b8, #d4a944, #f5e6b8)',
+                  backgroundSize: '200% auto',
+                  animation: 'gold-shimmer 3s linear infinite',
+                  border: '1px solid rgba(180, 140, 40, 0.4)',
+                  borderRadius: '50px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 0 12px rgba(212, 169, 68, 0.2)',
+                  lineHeight: 1.2,
+                }}
+                aria-label="Accedi all'Area Riservata"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Area Riservata
+              </button>
             </nav>
 
             {/* Hamburger (mobile only -- visibility controlled via media query injected below) */}
@@ -268,7 +304,7 @@ export default function Header() {
       </header>
 
       {/* Mobile menu */}
-      <MobileMenu isOpen={mobileOpen} onClose={handleMobileClose} activeSection={activeSection} />
+      <MobileMenu isOpen={mobileOpen} onClose={handleMobileClose} activeSection={activeSection} onOpenVip={onOpenVip} />
 
       {/* Responsive style — injected once for mobile/desktop toggling */}
       <style>{`

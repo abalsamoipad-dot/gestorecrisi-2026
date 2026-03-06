@@ -7,6 +7,7 @@ interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   activeSection: string;
+  onOpenVip: () => void;
 }
 
 const backdropStyle: CSSProperties = {
@@ -75,7 +76,7 @@ const ctaWrapperStyle: CSSProperties = {
   paddingTop: '32px',
 };
 
-export default function MobileMenu({ isOpen, onClose, activeSection }: MobileMenuProps) {
+export default function MobileMenu({ isOpen, onClose, activeSection, onOpenVip }: MobileMenuProps) {
   const regularItems = NAV_ITEMS.filter((item) => !item.isCta);
   const ctaItem = NAV_ITEMS.find((item) => item.isCta);
 
@@ -171,6 +172,50 @@ export default function MobileMenu({ isOpen, onClose, activeSection }: MobileMen
                 </Button>
               </motion.div>
             )}
+
+            {/* VIP Area Button */}
+            <motion.div
+              style={{ marginTop: '12px' }}
+              initial={{ x: 40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{
+                delay: 0.1 + (regularItems.length + 1) * 0.06,
+                duration: 0.3,
+                ease: 'easeOut',
+              }}
+            >
+              <button
+                onClick={() => { onClose(); onOpenVip(); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '16px 36px',
+                  fontSize: '1.05rem',
+                  fontWeight: 600,
+                  fontFamily: "var(--font-sans, 'Inter', sans-serif)",
+                  color: '#92700a',
+                  background: 'linear-gradient(135deg, #f5e6b8, #d4a944, #f5e6b8)',
+                  backgroundSize: '200% auto',
+                  animation: 'gold-shimmer 3s linear infinite',
+                  border: '1px solid rgba(180, 140, 40, 0.4)',
+                  borderRadius: '50px',
+                  cursor: 'pointer',
+                  boxShadow: '0 0 12px rgba(212, 169, 68, 0.2)',
+                  lineHeight: 1.2,
+                }}
+                aria-label="Accedi all'Area Riservata"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Area Riservata
+              </button>
+            </motion.div>
           </motion.nav>
         </>
       )}
