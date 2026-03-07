@@ -222,6 +222,54 @@ function generateTaskId() {
   return 'task_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
 }
 
+/**
+ * Hash password con SHA-256 + salt fisso.
+ * Usato per non salvare mai password in chiaro nel foglio.
+ */
+function hashPassword(password) {
+  var salt = 'GDC_2026_SALT_v1';
+  var rawHash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + password);
+  var hex = '';
+  for (var i = 0; i < rawHash.length; i++) {
+    var b = rawHash[i];
+    if (b < 0) b += 256;
+    var h = b.toString(16);
+    if (h.length === 1) h = '0' + h;
+    hex += h;
+  }
+  return hex;
+}
+
+/**
+ * Escape HTML per prevenire XSS nelle email.
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Verifica se un file si trova nella cartella del cliente (o sottocartella).
+ */
+function isFileInClientFolder(file, clientFolderId) {
+  var parents = file.getParents();
+  while (parents.hasNext()) {
+    var parent = parents.next();
+    if (parent.getId() === clientFolderId) return true;
+    // Controlla un livello sopra (file in sottocartella di categoria)
+    var grandparents = parent.getParents();
+    while (grandparents.hasNext()) {
+      if (grandparents.next().getId() === clientFolderId) return true;
+    }
+  }
+  return false;
+}
+
 function findClientRow(email) {
   const sheet = getSheet(SHEET_CLIENTS);
   const data = sheet.getDataRange().getValues();
@@ -295,7 +343,15 @@ function login(data) {
     return { success: false, error: 'Account disattivato. Contatta lo studio.' };
   }
 
-  if (password !== storedPassword) {
+  // Confronta con hash; se match plaintext, auto-migra a hash
+  var hashedInput = hashPassword(password);
+  if (hashedInput === storedPassword) {
+    // Password gia' hashata, match OK
+  } else if (password === storedPassword) {
+    // Match plaintext — auto-migra a hash
+    var sheet2 = getSheet(SHEET_CLIENTS);
+    sheet2.getRange(client.row, 5).setValue(hashedInput);
+  } else {
     return { success: false, error: 'Credenziali non valide' };
   }
 
@@ -341,12 +397,19 @@ function changePassword(data) {
   const sheet = getSheet(SHEET_CLIENTS);
   const storedPwd = sheet.getRange(user.row, 5).getValue(); // colonna E
 
-  if (currentPassword !== storedPwd) {
+  // Confronta con hash; se match plaintext, accetta comunque (migrazione)
+  var hashedCurrent = hashPassword(currentPassword);
+  if (hashedCurrent !== storedPwd && currentPassword !== storedPwd) {
     return { success: false, error: 'Password attuale non corretta' };
   }
 
-  sheet.getRange(user.row, 5).setValue(newPassword);
+  // Salva nuova password hashata
+  sheet.getRange(user.row, 5).setValue(hashPassword(newPassword));
   sheet.getRange(user.row, 7).setValue(false); // mustChangePassword = false
+
+  // Invalida token corrente per forzare re-login
+  sheet.getRange(user.row, 8).setValue('');
+  sheet.getRange(user.row, 9).setValue('');
 
   return { success: true };
 }
@@ -377,7 +440,7 @@ function requestPasswordReset(data) {
 
   // Invia email
   const resetUrl = AREA_CLIENTI_DIRECT_URL + 'reset-password.html?token=' + resetToken;
-  const clientName = client.data[2] + ' ' + (client.data[1] || '');
+  const clientName = escapeHtml((client.data[2] + ' ' + (client.data[1] || '')).trim());
 
   try {
     MailApp.sendEmail({
@@ -386,7 +449,7 @@ function requestPasswordReset(data) {
       htmlBody: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
           <h2 style="color:#005f73;">Reset Password</h2>
-          <p>Gentile ${clientName.trim()},</p>
+          <p>Gentile ${clientName},</p>
           <p>Hai richiesto il reset della password per la tua area clienti.</p>
           <p>Clicca sul link seguente per impostare una nuova password:</p>
           <p><a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#005f73;color:white;text-decoration:none;border-radius:25px;">Reimposta Password</a></p>
@@ -440,8 +503,12 @@ function resetPassword(data) {
       }
 
       const clientSheet = getSheet(SHEET_CLIENTS);
-      clientSheet.getRange(client.row, 5).setValue(newPassword);
+      clientSheet.getRange(client.row, 5).setValue(hashPassword(newPassword));
       clientSheet.getRange(client.row, 7).setValue(false); // mustChangePassword = false
+
+      // Invalida token di sessione
+      clientSheet.getRange(client.row, 8).setValue('');
+      clientSheet.getRange(client.row, 9).setValue('');
 
       // Segna token come usato
       sheet.getRange(i + 1, 4).setValue(true);
@@ -468,7 +535,18 @@ function adminLogin(data) {
 
   // Controlla se il foglio ha dati (oltre all'header)
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === username && rows[i][1] === password) {
+    if (rows[i][0] !== username) continue;
+    var storedAdminPwd = rows[i][1];
+    var hashedAdminInput = hashPassword(password);
+    var adminMatch = false;
+    if (hashedAdminInput === storedAdminPwd) {
+      adminMatch = true;
+    } else if (password === storedAdminPwd) {
+      // Match plaintext — auto-migra a hash
+      sheet.getRange(i + 1, 2).setValue(hashedAdminInput);
+      adminMatch = true;
+    }
+    if (adminMatch) {
       // Genera token admin
       const adminToken = generateToken();
       const expiry = new Date();
@@ -599,13 +677,13 @@ function createClient(data) {
 
   // Aggiungi al foglio
   const sheet = getSheet(SHEET_CLIENTS);
-  // Colonne: Email | Nome | Cognome | Telefono | Password | Active | MustChangePassword | Token | TokenExpiry | CreatedDate | FolderId
+  // Colonne: Email | Nome | Cognome | Telefono | Password (hash) | Active | MustChangePassword | Token | TokenExpiry | CreatedDate | FolderId
   sheet.appendRow([
     email,
     nome,
     cognome,
     telefono,
-    password,
+    hashPassword(password),
     true,       // active
     true,       // mustChangePassword
     '',         // token
@@ -616,7 +694,7 @@ function createClient(data) {
 
   // Invia email con credenziali
   try {
-    const clientName = cognome + (nome ? ' ' + nome : '');
+    const clientName = escapeHtml(cognome + (nome ? ' ' + nome : ''));
     MailApp.sendEmail({
       to: email,
       subject: 'Benvenuto nell\'Area Clienti - ' + SITE_NAME,
@@ -626,8 +704,8 @@ function createClient(data) {
           <p>Gentile ${clientName},</p>
           <p>Il tuo account per l'Area Clienti di ${SITE_NAME} e' stato creato.</p>
           <div style="background:#f5f6f7;padding:16px;border-radius:8px;margin:20px 0;">
-            <p style="margin:0 0 8px;"><strong>Email:</strong> ${email}</p>
-            <p style="margin:0 0 8px;"><strong>Password temporanea:</strong> <code style="background:#e8e8e8;padding:2px 8px;border-radius:4px;font-size:1.1em;">${password}</code></p>
+            <p style="margin:0 0 8px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+            <p style="margin:0 0 8px;"><strong>Password temporanea:</strong> <code style="background:#e8e8e8;padding:2px 8px;border-radius:4px;font-size:1.1em;">${escapeHtml(password)}</code></p>
           </div>
           <p><strong>Al primo accesso ti verra' chiesto di cambiare la password.</strong></p>
           <p>
@@ -665,7 +743,7 @@ function updateClient(data) {
   if (data.nome !== undefined) sheet.getRange(row, 2).setValue(data.nome);
   if (data.cognome !== undefined) sheet.getRange(row, 3).setValue(data.cognome);
   if (data.telefono !== undefined) sheet.getRange(row, 4).setValue(data.telefono);
-  if (data.password) sheet.getRange(row, 5).setValue(data.password);
+  if (data.password) sheet.getRange(row, 5).setValue(hashPassword(data.password));
   if (data.active !== undefined) sheet.getRange(row, 6).setValue(data.active);
   if (data.mustChangePassword !== undefined) sheet.getRange(row, 7).setValue(data.mustChangePassword);
 
@@ -704,7 +782,7 @@ function adminSetPassword(data) {
   }
 
   const sheet = getSheet(SHEET_CLIENTS);
-  sheet.getRange(client.row, 5).setValue(newPassword);
+  sheet.getRange(client.row, 5).setValue(hashPassword(newPassword));
   sheet.getRange(client.row, 7).setValue(mustChangePassword);
 
   // Invalida token esistente
@@ -714,18 +792,18 @@ function adminSetPassword(data) {
   // Invia email se richiesto
   if (sendEmail) {
     try {
-      const clientName = client.data[2] + ' ' + (client.data[1] || '');
+      const clientName = escapeHtml((client.data[2] + ' ' + (client.data[1] || '')).trim());
       MailApp.sendEmail({
         to: email,
         subject: 'Nuova Password - ' + SITE_NAME,
         htmlBody: `
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
             <h2 style="color:#005f73;">Nuova Password</h2>
-            <p>Gentile ${clientName.trim()},</p>
+            <p>Gentile ${clientName},</p>
             <p>La tua password per l'Area Clienti e' stata aggiornata.</p>
             <div style="background:#f5f6f7;padding:16px;border-radius:8px;margin:20px 0;">
-              <p style="margin:0 0 8px;"><strong>Email:</strong> ${email}</p>
-              <p style="margin:0;"><strong>Nuova password:</strong> <code style="background:#e8e8e8;padding:2px 8px;border-radius:4px;font-size:1.1em;">${newPassword}</code></p>
+              <p style="margin:0 0 8px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+              <p style="margin:0;"><strong>Nuova password:</strong> <code style="background:#e8e8e8;padding:2px 8px;border-radius:4px;font-size:1.1em;">${escapeHtml(newPassword)}</code></p>
             </div>
             ${mustChangePassword ? '<p><strong>Al prossimo accesso ti verra\' chiesto di scegliere una nuova password.</strong></p>' : ''}
             <p>
@@ -895,17 +973,18 @@ function sendNotification(data) {
     const categoryLabels = {};
     Object.keys(CATEGORY_FOLDERS).forEach(k => { categoryLabels[k] = CATEGORY_FOLDERS[k]; });
 
+    const safeClientName = escapeHtml(clientName.trim());
     const fileList = files.map(f =>
-      `<li><strong>${f.originalName || f.fileName}</strong> - ${categoryLabels[f.category] || f.category}</li>`
+      `<li><strong>${escapeHtml(f.originalName || f.fileName)}</strong> - ${escapeHtml(categoryLabels[f.category] || f.category)}</li>`
     ).join('');
 
     MailApp.sendEmail({
       to: NOTIFICATION_EMAIL,
-      subject: `Nuovi documenti caricati da ${clientName.trim()} - ${SITE_NAME}`,
+      subject: 'Nuovi documenti caricati da ' + clientName.trim() + ' - ' + SITE_NAME,
       htmlBody: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
           <h2 style="color:#005f73;">Nuovi Documenti Caricati</h2>
-          <p>Il cliente <strong>${clientName.trim()}</strong> (${user.email}) ha caricato ${files.length} documento/i:</p>
+          <p>Il cliente <strong>${safeClientName}</strong> (${escapeHtml(user.email)}) ha caricato ${files.length} documento/i:</p>
           <ul>${fileList}</ul>
           <p style="margin-top:20px;">
             <a href="https://drive.google.com/drive/folders/${ROOT_FOLDER_ID}" style="display:inline-block;padding:10px 20px;background:#005f73;color:white;text-decoration:none;border-radius:25px;">
@@ -936,8 +1015,17 @@ function clientDeleteFile(data) {
   try {
     const file = DriveApp.getFileById(fileId);
 
-    // Sposta nella cartella "Cancellati dal cliente"
+    // Verifica che il file appartenga alla cartella del cliente
     const client = findClientRow(user.email);
+    if (!client || !client.data[10]) {
+      return { success: false, error: 'Cartella cliente non trovata' };
+    }
+
+    if (!isFileInClientFolder(file, client.data[10])) {
+      return { success: false, error: 'Non autorizzato a eliminare questo file' };
+    }
+
+    // Sposta nella cartella "Cancellati dal cliente"
     if (client && client.data[10]) {
       const clientFolder = DriveApp.getFolderById(client.data[10]);
       const deletedFolders = clientFolder.getFoldersByName('Cancellati dal cliente');
@@ -1022,6 +1110,8 @@ function createTask(data) {
       // Invia con allegato .ics
       const icsBlob = Utilities.newBlob(icsContent, 'text/calendar', 'scadenza-task.ics');
 
+      var safeClientNameTask = escapeHtml(clientName);
+      var safeDescTask = escapeHtml(description);
       MailApp.sendEmail({
         to: clientEmail,
         cc: ADMIN_NOTIFICATION_EMAIL,
@@ -1029,10 +1119,10 @@ function createTask(data) {
         htmlBody: `
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
             <h2 style="color:#005f73;">Nuova Attivita' Assegnata</h2>
-            <p>Gentile ${clientName},</p>
+            <p>Gentile ${safeClientNameTask},</p>
             <p>Ti e' stata assegnata una nuova attivita':</p>
             <div style="background:#f5f6f7;padding:16px;border-radius:8px;margin:20px 0;border-left:4px solid ${priorityColors[priority] || '#d97706'};">
-              <p style="margin:0 0 8px;font-size:1.05em;"><strong>${description}</strong></p>
+              <p style="margin:0 0 8px;font-size:1.05em;"><strong>${safeDescTask}</strong></p>
               <p style="margin:0 0 4px;">Priorita': <span style="color:${priorityColors[priority] || '#d97706'};font-weight:600;">${priorityLabels[priority] || 'Media'}</span></p>
               ${deadlineHtml}
             </div>
@@ -1050,6 +1140,8 @@ function createTask(data) {
       });
     } else {
       // Senza scadenza, no allegato .ics
+      var safeClientNameTask2 = escapeHtml(clientName);
+      var safeDescTask2 = escapeHtml(description);
       MailApp.sendEmail({
         to: clientEmail,
         cc: ADMIN_NOTIFICATION_EMAIL,
@@ -1057,10 +1149,10 @@ function createTask(data) {
         htmlBody: `
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
             <h2 style="color:#005f73;">Nuova Attivita' Assegnata</h2>
-            <p>Gentile ${clientName},</p>
+            <p>Gentile ${safeClientNameTask2},</p>
             <p>Ti e' stata assegnata una nuova attivita':</p>
             <div style="background:#f5f6f7;padding:16px;border-radius:8px;margin:20px 0;border-left:4px solid ${priorityColors[priority] || '#d97706'};">
-              <p style="margin:0 0 8px;font-size:1.05em;"><strong>${description}</strong></p>
+              <p style="margin:0 0 8px;font-size:1.05em;"><strong>${safeDescTask2}</strong></p>
               <p style="margin:0;">Priorita': <span style="color:${priorityColors[priority] || '#d97706'};font-weight:600;">${priorityLabels[priority] || 'Media'}</span></p>
             </div>
             <p>Accedi alla tua Area Clienti per visualizzare e completare l'attivita':</p>
@@ -1230,9 +1322,9 @@ function completeTask(data) {
             htmlBody: `
               <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
                 <h2 style="color:#059669;">Task Completato</h2>
-                <p>Il cliente <strong>${(user.cognome + ' ' + user.nome).trim()}</strong> (${user.email}) ha completato il seguente task:</p>
+                <p>Il cliente <strong>${escapeHtml((user.cognome + ' ' + user.nome).trim())}</strong> (${escapeHtml(user.email)}) ha completato il seguente task:</p>
                 <div style="background:#f0fdf4;padding:16px;border-radius:8px;margin:20px 0;border-left:4px solid #059669;">
-                  <p style="margin:0;font-size:1.05em;"><strong>${taskData[i][3]}</strong></p>
+                  <p style="margin:0;font-size:1.05em;"><strong>${escapeHtml(taskData[i][3])}</strong></p>
                 </div>
                 <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
                 <p style="font-size:0.8em;color:#aaa;">${SITE_NAME}</p>
@@ -1283,7 +1375,7 @@ function sendMissingDocsEmail(data) {
   }
 
   try {
-    const catList = missingCategories.map(c => `<li style="padding:4px 0;">${c}</li>`).join('');
+    const catList = missingCategories.map(c => `<li style="padding:4px 0;">${escapeHtml(c)}</li>`).join('');
 
     MailApp.sendEmail({
       to: email,
@@ -1292,7 +1384,7 @@ function sendMissingDocsEmail(data) {
       htmlBody: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
           <h2 style="color:#005f73;">Documenti Mancanti</h2>
-          <p>Gentile ${clientName},</p>
+          <p>Gentile ${escapeHtml(clientName)},</p>
           <p>Per procedere con la tua pratica, abbiamo bisogno dei seguenti documenti che risultano ancora mancanti:</p>
           <div style="background:#fff7ed;padding:16px;border-radius:8px;margin:20px 0;border-left:4px solid #d97706;">
             <ul style="margin:0;padding-left:20px;">${catList}</ul>
@@ -1440,6 +1532,13 @@ function logKeywordAccess(data) {
     const deviceType = data.deviceType || 'sconosciuto';
     const timestamp = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
 
+    var safeKw = escapeHtml(keyword);
+    var safeLabel = escapeHtml(label);
+    var safeUrl = escapeHtml(url);
+    var safeIp = escapeHtml(ip);
+    var safeUa = escapeHtml(userAgent);
+    var safeDev = escapeHtml(deviceType);
+
     const subject = '[GDC] Accesso Modulo: "' + keyword + '" da IP ' + ip;
 
     const body = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">'
@@ -1450,17 +1549,17 @@ function logKeywordAccess(data) {
       + '<div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px;">'
       + '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
       + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;width:140px;border-bottom:1px solid #f3f4f6;">Parola chiave</td>'
-      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;"><code style="background:#f0fdfa;color:#005f73;padding:2px 8px;border-radius:4px;font-weight:600;">' + keyword + '</code></td></tr>'
-      + (label ? '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">Descrizione</td>'
-      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">' + label + '</td></tr>' : '')
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;"><code style="background:#f0fdfa;color:#005f73;padding:2px 8px;border-radius:4px;font-weight:600;">' + safeKw + '</code></td></tr>'
+      + (safeLabel ? '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">Descrizione</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">' + safeLabel + '</td></tr>' : '')
       + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">URL destinazione</td>'
-      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;word-break:break-all;"><a href="' + url + '" style="color:#005f73;">' + url + '</a></td></tr>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;word-break:break-all;">' + safeUrl + '</td></tr>'
       + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">Indirizzo IP</td>'
-      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-family:monospace;font-weight:600;">' + ip + '</td></tr>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-family:monospace;font-weight:600;">' + safeIp + '</td></tr>'
       + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">Dispositivo</td>'
-      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">' + deviceType + '</td></tr>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">' + safeDev + '</td></tr>'
       + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">User Agent</td>'
-      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#6b7280;word-break:break-all;">' + userAgent + '</td></tr>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#6b7280;word-break:break-all;">' + safeUa + '</td></tr>'
       + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;">Data e ora</td>'
       + '<td style="padding:8px 12px;">' + timestamp + '</td></tr>'
       + '</table>'
@@ -1533,7 +1632,9 @@ function setupInitial() {
   if (!sheet) sheet = ss.insertSheet(SHEET_ADMIN);
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(['Username', 'Password', 'Token', 'TokenExpiry']);
-    sheet.appendRow(['admin', 'test.2026', '', '']); // Credenziali iniziali
+    // IMPORTANTE: cambiare questa password subito dopo il primo login!
+    var defaultAdminPwd = 'Cambiami2026!';
+    sheet.appendRow(['admin', hashPassword(defaultAdminPwd), '', '']);
     sheet.getRange(1, 1, 1, 4).setFontWeight('bold').setBackground('#005f73').setFontColor('white');
   }
 
