@@ -21,6 +21,19 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Decisione istantanea: se sessione admin valida, nascondi overlay e mostra layout -->
+    <script>
+        (function(){
+            var hasSession = sessionStorage.getItem('gdc_admin') === 'true' && sessionStorage.getItem('gdc_admin_token');
+            if (hasSession) {
+                // Inietta CSS per nascondere overlay e mostrare layout prima del rendering
+                var s = document.createElement('style');
+                s.textContent = '#adminLoginOverlay{display:none!important}#adminLayout{display:block!important}';
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
+
     <!-- ====== ADMIN LOGIN (nascosto di default, mostrato solo se nessuna sessione) ====== -->
     <div class="admin-login-overlay" id="adminLoginOverlay" style="display:none;">
         <div class="login-page" style="min-height:100vh;">
@@ -737,11 +750,8 @@
     <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
     <script>
-        // Animazione entrata login admin
-        gsap.to('#adminLoginCard', {
-            opacity: 1, y: 0, duration: 0.8,
-            ease: 'power3.out', delay: 0.2
-        });
+        // L'animazione login viene triggerata solo da Admin.init() se serve
+        // (non piu' incondizionata, altrimenti sovrascrive display:none)
     </script>
 </body>
 </html>

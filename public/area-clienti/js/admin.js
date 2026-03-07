@@ -48,14 +48,22 @@ const Admin = {
     init() {
         // Controlla se admin gia' autenticato in questa sessione (con token valido)
         if (sessionStorage.getItem('gdc_admin') === 'true' && this.getAdminToken()) {
+            // Sessione valida: vai diretto al pannello, overlay resta nascosto
             this.authenticated = true;
             this.showPanel();
         } else {
-            // Nessuna sessione valida: mostra overlay login
+            // Nessuna sessione valida: mostra overlay login con animazione
             const overlay = document.getElementById('adminLoginOverlay');
             if (overlay) {
                 overlay.style.display = '';
                 overlay.classList.remove('hidden');
+            }
+            // Animazione entrata login card (solo se serve il login)
+            if (typeof gsap !== 'undefined') {
+                gsap.fromTo('#adminLoginCard',
+                    { opacity: 0, y: 20 },
+                    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.2 }
+                );
             }
         }
         lucide.createIcons();
