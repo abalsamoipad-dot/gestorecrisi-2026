@@ -50,6 +50,13 @@ const Admin = {
         if (sessionStorage.getItem('gdc_admin') === 'true' && this.getAdminToken()) {
             this.authenticated = true;
             this.showPanel();
+        } else {
+            // Nessuna sessione valida: mostra overlay login
+            const overlay = document.getElementById('adminLoginOverlay');
+            if (overlay) {
+                overlay.style.display = '';
+                overlay.classList.remove('hidden');
+            }
         }
         lucide.createIcons();
     },
@@ -176,23 +183,24 @@ const Admin = {
             if (currentVal) filterSelect.value = currentVal;
         }
 
-        // Select nella modale task
-        const taskClientSelect = document.getElementById('taskClient');
-        if (taskClientSelect) {
-            const currentVal = taskClientSelect.value;
-            taskClientSelect.innerHTML = '<option value="">-- Seleziona cliente --</option>';
+        // Checkbox list nella modale task
+        const taskClientList = document.getElementById('taskClientList');
+        if (taskClientList) {
             const sorted = [...this.clients].sort((a, b) =>
                 (a.cognome + ' ' + a.nome).toLowerCase().localeCompare((b.cognome + ' ' + b.nome).toLowerCase())
             );
-            sorted.forEach(c => {
-                const isActive = c.active === true || c.active === 'TRUE';
-                if (isActive) {
-                    const opt = document.createElement('option');
-                    opt.value = c.email;
-                    opt.textContent = c.cognome + ' ' + c.nome;
-                    taskClientSelect.appendChild(opt);
-                }
-            });
+            taskClientList.innerHTML = sorted
+                .filter(c => c.active === true || c.active === 'TRUE')
+                .map(c => {
+                    const safeEmail = (c.email || '').replace(/"/g, '&quot;');
+                    const safeName = (c.cognome + ' ' + c.nome).replace(/</g, '&lt;');
+                    return `<label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:0.85rem;border-radius:4px;" onmouseover="this.style.background='var(--color-primary-bg, #e8f4f8)'" onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" class="task-client-cb" value="${safeEmail}" data-name="${safeName}" style="accent-color:var(--color-accent);width:16px;height:16px;flex-shrink:0;" onchange="Admin.updateTaskClientCount()">
+                        <span>${safeName}</span>
+                        <span style="color:var(--color-text-tertiary);font-size:0.75rem;margin-left:auto;">${safeEmail}</span>
+                    </label>`;
+                }).join('');
+            this.updateTaskClientCount();
             if (currentVal) taskClientSelect.value = currentVal;
         }
     },
@@ -636,8 +644,11 @@ const Admin = {
     showTaskModal() {
         document.getElementById('taskForm').reset();
         document.getElementById('taskError').classList.add('hidden');
-        // Popola select clienti
+        // Popola lista checkbox clienti
         this.populateTaskClientFilter();
+        // Reset tutte le checkbox
+        document.querySelectorAll('.task-client-cb').forEach(cb => cb.checked = false);
+        this.updateTaskClientCount();
         document.getElementById('taskModal').classList.add('active');
         lucide.createIcons({ nodes: [document.getElementById('taskModal')] });
     },
@@ -646,18 +657,37 @@ const Admin = {
         document.getElementById('taskModal').classList.remove('active');
     },
 
+    // Contatore clienti selezionati
+    updateTaskClientCount() {
+        const checked = document.querySelectorAll('.task-client-cb:checked');
+        const countEl = document.getElementById('taskClientCount');
+        if (countEl) countEl.textContent = checked.length + ' client' + (checked.length === 1 ? 'e selezionato' : 'i selezionati');
+    },
+
+    // Seleziona/deseleziona tutti
+    toggleAllTaskClients(state) {
+        document.querySelectorAll('.task-client-cb').forEach(cb => cb.checked = state);
+        this.updateTaskClientCount();
+    },
+
     async saveTask(e) {
         e.preventDefault();
 
-        const clientEmail = document.getElementById('taskClient').value;
+        // Raccogli clienti selezionati
+        const checkedBoxes = document.querySelectorAll('.task-client-cb:checked');
+        const selectedClients = Array.from(checkedBoxes).map(cb => ({
+            email: cb.value,
+            name: cb.dataset.name || cb.value
+        }));
+
         const description = document.getElementById('taskDescription').value.trim();
         const priority = document.getElementById('taskPriority').value;
         const deadline = document.getElementById('taskDeadline').value;
         const errorEl = document.getElementById('taskError');
         const errorText = document.getElementById('taskErrorText');
 
-        if (!clientEmail || !description) {
-            errorText.textContent = 'Seleziona un cliente e inserisci una descrizione';
+        if (selectedClients.length === 0 || !description) {
+            errorText.textContent = 'Seleziona almeno un cliente e inserisci una descrizione';
             errorEl.classList.remove('hidden');
             return;
         }
@@ -665,30 +695,36 @@ const Admin = {
         errorEl.classList.add('hidden');
         const btn = document.getElementById('taskSaveBtn');
         btn.disabled = true;
-        btn.querySelector('span').textContent = 'Invio...';
+        btn.querySelector('span').textContent = 'Invio a ' + selectedClients.length + ' client' + (selectedClients.length === 1 ? 'e' : 'i') + '...';
 
-        try {
-            const client = this.clients.find(c => c.email === clientEmail);
-            const clientName = client ? `${client.cognome} ${client.nome}` : clientEmail;
+        let successes = 0;
+        let failures = 0;
 
-            const result = await this.adminApiCall('createTask', {
-                clientEmail,
-                clientName,
-                description,
-                priority,
-                deadline: deadline || null
-            });
-
-            if (result.success) {
-                Toast.success(`Task inviato a ${clientName}`);
-                this.hideTaskModal();
-                this.loadTasks();
-            } else {
-                errorText.textContent = result.error || 'Errore nella creazione del task';
-                errorEl.classList.remove('hidden');
+        for (const client of selectedClients) {
+            try {
+                const result = await this.adminApiCall('createTask', {
+                    clientEmail: client.email,
+                    clientName: client.name,
+                    description,
+                    priority,
+                    deadline: deadline || null
+                });
+                if (result.success) {
+                    successes++;
+                } else {
+                    failures++;
+                }
+            } catch (err) {
+                failures++;
             }
-        } catch (err) {
-            errorText.textContent = 'Errore di connessione';
+        }
+
+        if (successes > 0) {
+            Toast.success('Task inviato a ' + successes + ' client' + (successes === 1 ? 'e' : 'i') + (failures > 0 ? ' (' + failures + ' errori)' : ''));
+            this.hideTaskModal();
+            this.loadTasks();
+        } else {
+            errorText.textContent = 'Errore nell\'invio. Nessun task creato.';
             errorEl.classList.remove('hidden');
         }
 

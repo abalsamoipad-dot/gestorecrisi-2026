@@ -21,8 +21,8 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- ====== ADMIN LOGIN ====== -->
-    <div class="admin-login-overlay" id="adminLoginOverlay">
+    <!-- ====== ADMIN LOGIN (nascosto di default, mostrato solo se nessuna sessione) ====== -->
+    <div class="admin-login-overlay" id="adminLoginOverlay" style="display:none;">
         <div class="login-page" style="min-height:100vh;">
             <div class="login-bg-gradient"></div>
             <div class="login-card" id="adminLoginCard">
@@ -574,10 +574,15 @@
                 </div>
 
                 <div class="task-form-group">
-                    <label for="taskClient">Cliente</label>
-                    <select class="form-select" id="taskClient" required>
-                        <option value="">-- Seleziona cliente --</option>
-                    </select>
+                    <label>Clienti destinatari</label>
+                    <div style="display:flex;gap:8px;margin-bottom:8px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="Admin.toggleAllTaskClients(true)" style="font-size:0.75rem;">Seleziona tutti</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="Admin.toggleAllTaskClients(false)" style="font-size:0.75rem;">Deseleziona tutti</button>
+                    </div>
+                    <div id="taskClientList" style="max-height:160px;overflow-y:auto;border:1px solid var(--color-border, #e5e7eb);border-radius:var(--radius-sm, 6px);padding:8px;">
+                        <!-- Generato via JS -->
+                    </div>
+                    <span style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:4px;display:block;" id="taskClientCount">0 clienti selezionati</span>
                 </div>
 
                 <div class="task-form-group">

@@ -1187,7 +1187,17 @@ function createICSContent(taskId, description, deadline, clientEmail, clientName
   };
 
   const uid = 'task-' + taskId + '-' + now.getTime() + '@gestoredellacrisi.it';
-  const cleanDesc = description.replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+
+  // Funzione di escape per valori ICS (RFC 5545: escape virgole, punto e virgola, backslash, newline)
+  var icsEscape = function(str) {
+    return (str || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n').replace(/\r/g, '');
+  };
+
+  // SUMMARY: "GDC - <titolo task>" (max 70 char per riga ICS)
+  var summaryText = 'GDC - ' + (description || '').replace(/[\r\n]+/g, ' ').substring(0, 64);
+  var cleanSummary = icsEscape(summaryText);
+  var cleanDesc = icsEscape(description + '\n\nTask assegnato da Gestore della Crisi');
+  var cleanClientName = (clientName || '').replace(/[;:,]/g, ' ');
 
   return [
     'BEGIN:VCALENDAR',
@@ -1201,12 +1211,12 @@ function createICSContent(taskId, description, deadline, clientEmail, clientName
     'DTSTAMP:' + formatICS(now),
     'DTSTART:' + formatICS(deadlineDate),
     'DTEND:' + formatICS(endDate),
-    'SUMMARY:GDC - ' + description.substring(0, 60),
-    'DESCRIPTION:' + cleanDesc + '\\n\\nTask assegnato da Gestore della Crisi',
+    'SUMMARY:' + cleanSummary,
+    'DESCRIPTION:' + cleanDesc,
     'PRIORITY:5',
     'STATUS:CONFIRMED',
     'ORGANIZER;CN=Gestore della Crisi:mailto:' + ADMIN_NOTIFICATION_EMAIL,
-    'ATTENDEE;CN=' + clientName + ':mailto:' + clientEmail,
+    'ATTENDEE;CN=' + cleanClientName + ':mailto:' + clientEmail,
     'BEGIN:VALARM',
     'TRIGGER:-P1D',
     'ACTION:DISPLAY',
