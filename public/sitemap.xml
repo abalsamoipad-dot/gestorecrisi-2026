@@ -2,12 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.gestoredellacrisi.it/</loc>
-    <lastmod>2024-05-22</lastmod>
+    <lastmod>2026-03-07</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.gestoredellacrisi.it/news.html</loc>
-    <lastmod>2024-05-22</lastmod>
-    <priority>0.8</priority>
+    <loc>https://www.gestoredellacrisi.it/privacy.html</loc>
+    <lastmod>2026-03-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.gestoredellacrisi.it/cookie-policy.html</loc>
+    <lastmod>2026-03-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

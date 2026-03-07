@@ -7,7 +7,7 @@ import Logo from '@/components/ui/Logo';
 /* ------------------------------------------------------------------ */
 const footerStyle: CSSProperties = {
   position: 'relative',
-  padding: '64px 0 48px',
+  padding: '64px 0 40px',
   backgroundColor: 'var(--neutral-50, #f9fafb)',
 };
 
@@ -45,6 +45,51 @@ const disclaimerStyle: CSSProperties = {
   margin: '0 auto',
 };
 
+const linksRowStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '8px 20px',
+  fontSize: '13px',
+};
+
+const linkStyle: CSSProperties = {
+  color: 'var(--primary-700, #005f73)',
+  textDecoration: 'none',
+  fontWeight: 500,
+  transition: 'color 0.2s ease',
+};
+
+const separatorStyle: CSSProperties = {
+  color: 'var(--text-secondary, #6b7280)',
+  opacity: 0.4,
+  userSelect: 'none',
+};
+
+const badgesRowStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '16px',
+  marginTop: '4px',
+};
+
+const badgeStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  fontSize: '11px',
+  fontWeight: 500,
+  color: 'var(--text-secondary, #6b7280)',
+  padding: '5px 12px',
+  borderRadius: '20px',
+  border: '1px solid rgba(0, 95, 115, 0.12)',
+  background: 'rgba(0, 95, 115, 0.03)',
+  letterSpacing: '0.02em',
+};
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -66,6 +111,49 @@ export default function Footer() {
             &copy; {year} gestoredellacrisi.it &mdash; Team di Professionisti per il Risanamento
             d&apos;Impresa.
           </p>
+
+          {/* Legal & Policy Links */}
+          <nav aria-label="Link legali e policy" style={linksRowStyle}>
+            <a href="privacy.html" style={linkStyle}>
+              Informativa Privacy
+            </a>
+            <span style={separatorStyle} aria-hidden="true">|</span>
+            <a href="cookie-policy.html" style={linkStyle}>
+              Cookie Policy
+            </a>
+            <span style={separatorStyle} aria-hidden="true">|</span>
+            <a
+              href="https://form.agid.gov.it/view/0c188080-3501-11ee-b7ba-bba6d9c8f444"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={linkStyle}
+            >
+              Dichiarazione di Accessibilit&agrave;
+            </a>
+          </nav>
+
+          {/* Trust Badges */}
+          <div style={badgesRowStyle}>
+            <span style={badgeStyle}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              GDPR Compliant
+            </span>
+            <span style={badgeStyle}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Dati Protetti
+            </span>
+            <span style={badgeStyle}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4M12 8h.01" />
+              </svg>
+              EAA 2025
+            </span>
+          </div>
 
           {/* Disclaimer */}
           <p style={disclaimerStyle}>
