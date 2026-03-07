@@ -7,6 +7,8 @@ const Admin = {
     clients: [],
     uploadLogs: [],
     tasks: [],
+    keywords: [],
+    editingKeywordIndex: -1,
     currentView: 'clients',
     editingClient: null,
     clientType: 'persona',
@@ -59,6 +61,7 @@ const Admin = {
         this.loadLogs();
         this.loadTasks();
         this.loadSettings();
+        this.loadKeywords();
     },
 
     // Logout admin
@@ -85,6 +88,7 @@ const Admin = {
         if (view === 'clients') this.renderClients();
         if (view === 'logs') this.renderLogs();
         if (view === 'tasks') this.renderAdminTasks();
+        if (view === 'settings') this.renderKeywords();
 
         // Chiudi sidebar mobile
         this.closeSidebar();
@@ -808,6 +812,178 @@ const Admin = {
 
         btn.disabled = false;
         btn.querySelector('span').textContent = 'Salva Impostazioni';
+    },
+
+    // ====== PAROLE CHIAVE (KEYWORDS) ======
+
+    async loadKeywords() {
+        const result = await apiCall('getKeywords', {}, 'GET');
+        if (result.success) {
+            this.keywords = result.keywords || [];
+            this.renderKeywords();
+        }
+    },
+
+    renderKeywords() {
+        const tbody = document.getElementById('keywordsBody');
+        const empty = document.getElementById('keywordsEmpty');
+        const tableContainer = document.getElementById('keywordsTableContainer');
+        if (!tbody || !empty || !tableContainer) return;
+
+        if (this.keywords.length === 0) {
+            empty.classList.remove('hidden');
+            tableContainer.classList.add('hidden');
+            return;
+        }
+
+        empty.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+
+        tbody.innerHTML = this.keywords.map((kw, index) => {
+            const safeUrl = this.escapeHtml(kw.url);
+            const truncatedUrl = kw.url.length > 50
+                ? kw.url.substring(0, 50) + '...'
+                : kw.url;
+            return `
+            <tr>
+                <td>
+                    <code style="background:var(--color-accent-glow);color:var(--color-accent);padding:2px 8px;border-radius:4px;font-size:0.85rem;font-weight:600;">
+                        ${this.escapeHtml(kw.keyword)}
+                    </code>
+                </td>
+                <td style="color:var(--color-text-secondary);font-size:0.85rem;">
+                    ${this.escapeHtml(kw.label || '-')}
+                </td>
+                <td class="hide-mobile" style="font-size:0.75rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${safeUrl}">
+                    <a href="${safeUrl}" target="_blank" style="color:var(--color-accent);">
+                        ${this.escapeHtml(truncatedUrl)}
+                    </a>
+                </td>
+                <td>
+                    <div class="actions">
+                        <button class="btn btn-icon btn-ghost btn-sm" onclick="Admin.editKeyword(${index})" title="Modifica">
+                            <i data-lucide="pencil" style="width:16px;height:16px;"></i>
+                        </button>
+                        <button class="btn btn-icon btn-ghost btn-sm" onclick="Admin.deleteKeyword(${index})" title="Elimina" style="color:var(--color-error);">
+                            <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+
+        lucide.createIcons({ nodes: [tbody] });
+    },
+
+    showKeywordModal(editIndex) {
+        this.editingKeywordIndex = (editIndex !== undefined && editIndex >= 0) ? editIndex : -1;
+        const form = document.getElementById('keywordForm');
+        const title = document.getElementById('keywordModalTitle');
+        const errorEl = document.getElementById('keywordFormError');
+
+        form.reset();
+        errorEl.classList.add('hidden');
+
+        if (this.editingKeywordIndex >= 0 && this.keywords[this.editingKeywordIndex]) {
+            const kw = this.keywords[this.editingKeywordIndex];
+            title.innerHTML = '<i data-lucide="key" style="width:18px;height:18px;vertical-align:-3px;margin-right:8px;color:var(--color-accent);"></i> Modifica Parola Chiave';
+            document.getElementById('kwKeyword').value = kw.keyword;
+            document.getElementById('kwLabel').value = kw.label || '';
+            document.getElementById('kwUrl').value = kw.url;
+        } else {
+            title.innerHTML = '<i data-lucide="key" style="width:18px;height:18px;vertical-align:-3px;margin-right:8px;color:var(--color-accent);"></i> Nuova Parola Chiave';
+        }
+
+        document.getElementById('keywordModal').classList.add('active');
+        lucide.createIcons({ nodes: [document.getElementById('keywordModal')] });
+    },
+
+    hideKeywordModal() {
+        document.getElementById('keywordModal').classList.remove('active');
+        this.editingKeywordIndex = -1;
+    },
+
+    editKeyword(index) {
+        this.showKeywordModal(index);
+    },
+
+    async deleteKeyword(index) {
+        const kw = this.keywords[index];
+        if (!kw) return;
+
+        if (!confirm('Eliminare la parola chiave "' + kw.keyword + '"?')) return;
+
+        this.keywords.splice(index, 1);
+        await this.saveKeywordsToBackend();
+    },
+
+    async saveKeyword(e) {
+        e.preventDefault();
+
+        const keyword = document.getElementById('kwKeyword').value.trim().toLowerCase();
+        const label = document.getElementById('kwLabel').value.trim();
+        const url = document.getElementById('kwUrl').value.trim();
+        const errorEl = document.getElementById('keywordFormError');
+        const errorText = document.getElementById('keywordFormErrorText');
+        const btn = document.getElementById('kwSaveBtn');
+
+        errorEl.classList.add('hidden');
+
+        if (!keyword) {
+            errorText.textContent = 'La parola chiave e\' obbligatoria';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        if (!url) {
+            errorText.textContent = 'L\'URL e\' obbligatorio';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        // Controlla duplicati (escluso quello in modifica)
+        const duplicateIndex = this.keywords.findIndex((kw, i) =>
+            kw.keyword === keyword && i !== this.editingKeywordIndex
+        );
+        if (duplicateIndex >= 0) {
+            errorText.textContent = 'Questa parola chiave esiste gia\'';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        const entry = { keyword: keyword, label: label, url: url };
+
+        if (this.editingKeywordIndex >= 0) {
+            this.keywords[this.editingKeywordIndex] = entry;
+        } else {
+            this.keywords.push(entry);
+        }
+
+        btn.disabled = true;
+        btn.querySelector('span').textContent = 'Salvataggio...';
+
+        const success = await this.saveKeywordsToBackend();
+
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Salva';
+
+        if (success) {
+            this.hideKeywordModal();
+        }
+    },
+
+    async saveKeywordsToBackend() {
+        const result = await apiCall('updateKeywords', { keywords: this.keywords });
+
+        if (result.success) {
+            Toast.success('Parole chiave aggiornate');
+            this.renderKeywords();
+            return true;
+        } else {
+            Toast.error(result.error || 'Errore nel salvataggio delle parole chiave');
+            await this.loadKeywords();
+            return false;
+        }
     },
 
     // ====== DOCUMENTI CLIENTE ======

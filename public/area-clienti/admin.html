@@ -327,6 +327,49 @@
                     </div>
                 </div>
 
+                <!-- Parole chiave per Moduli e Documenti -->
+                <div class="settings-group">
+                    <h3 class="settings-group-title">
+                        <i data-lucide="key" style="width:16px;height:16px;vertical-align:-3px;margin-right:8px;"></i>
+                        Moduli e Documenti — Parole Chiave
+                    </h3>
+                    <p style="font-size:0.8rem;color:var(--color-text-tertiary);margin-bottom:16px;">
+                        Gestisci le parole chiave che gli utenti possono utilizzare nella sezione "Moduli e Documenti" per accedere a link specifici.
+                        Ad ogni accesso riceverai una notifica email con l'IP del dispositivo.
+                    </p>
+
+                    <div class="table-container" id="keywordsTableContainer">
+                        <table class="data-table" id="keywordsTable">
+                            <thead>
+                                <tr>
+                                    <th>Parola Chiave</th>
+                                    <th>Descrizione</th>
+                                    <th class="hide-mobile">URL</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="keywordsBody">
+                                <!-- Renderizzato via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="empty-state hidden" id="keywordsEmpty" style="padding:20px;">
+                        <div class="empty-state-icon">
+                            <i data-lucide="key" style="width:36px;height:36px;"></i>
+                        </div>
+                        <div class="empty-state-title" style="font-size:0.9rem;">Nessuna parola chiave configurata</div>
+                        <div class="empty-state-text" style="font-size:0.8rem;">Aggiungi la prima parola chiave per attivare la sezione "Moduli e Documenti"</div>
+                    </div>
+
+                    <div style="margin-top:16px;">
+                        <button class="btn btn-outline btn-sm" onclick="Admin.showKeywordModal()">
+                            <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                            Aggiungi parola chiave
+                        </button>
+                    </div>
+                </div>
+
                 <div style="text-align:right;margin-top:24px;">
                     <button class="btn btn-primary" id="saveSettingsBtn" onclick="Admin.saveSettings()">
                         <i data-lucide="save" style="width:16px;height:16px;"></i>
@@ -627,6 +670,60 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ====== MODALE: PAROLA CHIAVE ====== -->
+    <div class="modal-overlay" id="keywordModal">
+        <div class="modal" style="max-width:520px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="keywordModalTitle">
+                    <i data-lucide="key" style="width:18px;height:18px;vertical-align:-3px;margin-right:8px;color:var(--color-accent);"></i>
+                    Nuova Parola Chiave
+                </h3>
+                <button class="btn btn-icon btn-ghost btn-sm" onclick="Admin.hideKeywordModal()">
+                    <i data-lucide="x" style="width:20px;height:20px;"></i>
+                </button>
+            </div>
+            <form class="modal-body" id="keywordForm" onsubmit="Admin.saveKeyword(event)">
+                <div class="login-error hidden" id="keywordFormError">
+                    <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
+                    <span id="keywordFormErrorText"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="kwKeyword">Parola Chiave</label>
+                    <input type="text" id="kwKeyword" class="form-input" placeholder="es. ross" required
+                           autocomplete="off" spellcheck="false" style="text-transform:lowercase;">
+                    <span style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:4px;display:block;">
+                        L'utente inserira' questa parola per accedere al link. Non sensibile a maiuscole/minuscole.
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="kwLabel">Descrizione</label>
+                    <input type="text" id="kwLabel" class="form-input" placeholder="es. Questionario Ross Group">
+                    <span style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:4px;display:block;">
+                        Descrizione interna per identificare il link (non visibile agli utenti).
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="kwUrl">URL di destinazione</label>
+                    <input type="url" id="kwUrl" class="form-input" placeholder="https://..." required>
+                    <span style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:4px;display:block;">
+                        L'URL completo a cui l'utente verra' reindirizzato (es. Google Drive, questionario, ecc.).
+                    </span>
+                </div>
+
+                <div class="modal-footer" style="padding:0;margin-top:16px;">
+                    <button type="button" class="btn btn-outline" onclick="Admin.hideKeywordModal()">Annulla</button>
+                    <button type="submit" class="btn btn-primary" id="kwSaveBtn">
+                        <i data-lucide="save" style="width:16px;height:16px;"></i>
+                        <span>Salva</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

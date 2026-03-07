@@ -13,8 +13,10 @@ const NOTIFICATION_EMAIL = 'info@gestoredellacrisi.it';
 const ADMIN_NOTIFICATION_EMAIL = 'info@gestoredellacrisi.it';
 const SITE_NAME = 'Gestore della Crisi';
 const SITE_URL = 'https://www.gestoredellacrisi.it';
-const GITHUB_PAGES_URL = 'https://abalsamoipad-dot.github.io/gestorecrisi-2026';
-const AREA_CLIENTI_URL = GITHUB_PAGES_URL + '/area-clienti/';
+// URL visibile ai clienti nelle email (dominio principale, mai GitHub Pages)
+const AREA_CLIENTI_URL = SITE_URL + '/';
+// URL tecnico GitHub Pages (usato SOLO internamente per reset password con token)
+const AREA_CLIENTI_DIRECT_URL = 'https://abalsamoipad-dot.github.io/gestorecrisi-2026/area-clienti/';
 
 // Nomi dei fogli
 const SHEET_CLIENTS = 'Clienti';
@@ -67,6 +69,9 @@ function doGet(e) {
         break;
       case 'getSettings':
         result = getSettings();
+        break;
+      case 'getKeywords':
+        result = getKeywords();
         break;
       default:
         result = { success: false, error: 'Azione non valida' };
@@ -158,6 +163,14 @@ function doPost(e) {
       // Settings
       case 'updateSettings':
         result = updateSettings(data);
+        break;
+
+      // Keywords
+      case 'updateKeywords':
+        result = updateKeywords(data);
+        break;
+      case 'logKeywordAccess':
+        result = logKeywordAccess(data);
         break;
 
       // Email documenti mancanti
@@ -338,7 +351,7 @@ function requestPasswordReset(data) {
   sheet.appendRow([email, resetToken, expiry.toISOString(), false]);
 
   // Invia email
-  const resetUrl = AREA_CLIENTI_URL + 'reset-password.html?token=' + resetToken;
+  const resetUrl = AREA_CLIENTI_DIRECT_URL + 'reset-password.html?token=' + resetToken;
   const clientName = client.data[2] + ' ' + (client.data[1] || '');
 
   try {
@@ -1256,6 +1269,126 @@ function updateSettings(data) {
   return { success: true };
 }
 
+// ===================== KEYWORDS (PAROLE CHIAVE) =====================
+
+function getKeywords() {
+  const sheet = getSheet(SHEET_SETTINGS);
+  const data = sheet.getDataRange().getValues();
+
+  let keywordsJson = '[]';
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === 'keywords_config') {
+      keywordsJson = data[i][1] || '[]';
+      break;
+    }
+  }
+
+  try {
+    const keywords = JSON.parse(keywordsJson);
+    return { success: true, keywords: keywords };
+  } catch (err) {
+    return { success: true, keywords: [] };
+  }
+}
+
+function updateKeywords(data) {
+  const keywords = data.keywords;
+  if (!Array.isArray(keywords)) {
+    return { success: false, error: 'Formato keywords non valido' };
+  }
+
+  // Valida ogni entry
+  for (let i = 0; i < keywords.length; i++) {
+    const kw = keywords[i];
+    if (!kw.keyword || !kw.keyword.trim()) {
+      return { success: false, error: 'Ogni parola chiave deve avere un valore' };
+    }
+    if (!kw.url || !kw.url.trim()) {
+      return { success: false, error: 'Ogni parola chiave deve avere un URL' };
+    }
+    keywords[i].keyword = kw.keyword.trim().toLowerCase();
+    keywords[i].label = (kw.label || '').trim();
+    keywords[i].url = kw.url.trim();
+  }
+
+  // Controlla duplicati
+  const kwSet = {};
+  for (var j = 0; j < keywords.length; j++) {
+    if (kwSet[keywords[j].keyword]) {
+      return { success: false, error: 'Parola chiave duplicata: ' + keywords[j].keyword };
+    }
+    kwSet[keywords[j].keyword] = true;
+  }
+
+  const jsonStr = JSON.stringify(keywords);
+  const sheet = getSheet(SHEET_SETTINGS);
+  const existingData = sheet.getDataRange().getValues();
+
+  var found = false;
+  for (var i = 1; i < existingData.length; i++) {
+    if (existingData[i][0] === 'keywords_config') {
+      sheet.getRange(i + 1, 2).setValue(jsonStr);
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    sheet.appendRow(['keywords_config', jsonStr]);
+  }
+
+  return { success: true };
+}
+
+function logKeywordAccess(data) {
+  try {
+    const keyword = data.keyword || 'sconosciuta';
+    const label = data.label || '';
+    const url = data.url || '';
+    const ip = data.ip || 'sconosciuto';
+    const userAgent = data.userAgent || 'sconosciuto';
+    const deviceType = data.deviceType || 'sconosciuto';
+    const timestamp = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
+
+    const subject = '[GDC] Accesso Modulo: "' + keyword + '" da IP ' + ip;
+
+    const body = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">'
+      + '<div style="background:#005f73;color:white;padding:20px;border-radius:8px 8px 0 0;">'
+      + '<h2 style="margin:0;font-size:18px;">Notifica Accesso Modulo</h2>'
+      + '<p style="margin:4px 0 0;opacity:0.85;font-size:13px;">gestoredellacrisi.it</p>'
+      + '</div>'
+      + '<div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px;">'
+      + '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+      + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;width:140px;border-bottom:1px solid #f3f4f6;">Parola chiave</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;"><code style="background:#f0fdfa;color:#005f73;padding:2px 8px;border-radius:4px;font-weight:600;">' + keyword + '</code></td></tr>'
+      + (label ? '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">Descrizione</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">' + label + '</td></tr>' : '')
+      + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">URL destinazione</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;word-break:break-all;"><a href="' + url + '" style="color:#005f73;">' + url + '</a></td></tr>'
+      + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">Indirizzo IP</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-family:monospace;font-weight:600;">' + ip + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">Dispositivo</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">' + deviceType + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;border-bottom:1px solid #f3f4f6;">User Agent</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#6b7280;word-break:break-all;">' + userAgent + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;font-weight:bold;color:#374151;">Data e ora</td>'
+      + '<td style="padding:8px 12px;">' + timestamp + '</td></tr>'
+      + '</table>'
+      + '</div></div>';
+
+    MailApp.sendEmail({
+      to: ADMIN_NOTIFICATION_EMAIL,
+      subject: subject,
+      htmlBody: body
+    });
+
+    return { success: true };
+  } catch (err) {
+    // Non bloccare in caso di errore email
+    Logger.log('Errore logKeywordAccess: ' + err.message);
+    return { success: true };
+  }
+}
+
 // ===================== SETUP INIZIALE =====================
 // Esegui questa funzione UNA SOLA VOLTA per creare la struttura
 
@@ -1298,6 +1431,9 @@ function setupInitial() {
     sheet.appendRow(['Key', 'Value']);
     sheet.appendRow(['notification_email', NOTIFICATION_EMAIL]);
     sheet.appendRow(['allowed_extensions', 'pdf,doc,docx,csv,xls,xlsx,jpg,jpeg,png']);
+    sheet.appendRow(['keywords_config', JSON.stringify([
+      { keyword: 'ross', label: 'Questionario Ross Group', url: 'https://abalsamoipad-dot.github.io/gestorecrisi-2026/modulo_Ross_group/' }
+    ])]);
     sheet.getRange(1, 1, 1, 2).setFontWeight('bold').setBackground('#005f73').setFontColor('white');
   }
 

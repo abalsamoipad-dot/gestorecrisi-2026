@@ -217,6 +217,49 @@
             }
         })();
 
+        // ====== KEYWORDS CACHE ======
+        let keywordsCache = null;
+        let keywordsLoading = false;
+
+        async function loadKeywords() {
+            if (keywordsCache !== null) return keywordsCache;
+            if (keywordsLoading) {
+                // Aspetta che il caricamento in corso finisca
+                return new Promise(resolve => {
+                    const check = setInterval(() => {
+                        if (!keywordsLoading) { clearInterval(check); resolve(keywordsCache || []); }
+                    }, 100);
+                });
+            }
+            keywordsLoading = true;
+            try {
+                const result = await apiCall('getKeywords', {}, 'GET');
+                keywordsCache = (result.success ? result.keywords : []) || [];
+            } catch (err) {
+                console.error('Errore caricamento parole chiave:', err);
+                keywordsCache = [];
+            }
+            keywordsLoading = false;
+            return keywordsCache;
+        }
+        loadKeywords(); // pre-fetch
+
+        // ====== IP & DEVICE DETECTION ======
+        async function getUserIP() {
+            try {
+                const r = await fetch('https://api.ipify.org?format=json');
+                const d = await r.json();
+                return d.ip || 'sconosciuto';
+            } catch (e) { return 'sconosciuto'; }
+        }
+
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/tablet|ipad|playbook|silk/i.test(ua)) return 'Tablet';
+            if (/mobile|iphone|ipod|android.*mobile|windows phone/i.test(ua)) return 'Mobile';
+            return 'Desktop';
+        }
+
         // Animazione entrata cards
         gsap.to('.entry-card', {
             opacity: 1,
@@ -291,26 +334,46 @@
             }
         }
 
-        // ====== MODULI E DOCUMENTI (KEYWORD) ======
+        // ====== MODULI E DOCUMENTI (KEYWORD — DINAMICO) ======
 
-        function handleKeywordAccess(e) {
+        async function handleKeywordAccess(e) {
             e.preventDefault();
             const keyword = document.getElementById('keyword').value.trim().toLowerCase();
             const errorDiv = document.getElementById('keywordError');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
             errorDiv.classList.remove('show');
 
-            if (keyword === 'ross') {
-                // Redirect al questionario Ross Group
+            const origHTML = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Verifica...</span>';
+
+            const keywords = await loadKeywords();
+            const match = keywords.find(function(k) { return k.keyword === keyword; });
+
+            if (match) {
+                // Log accesso con IP e device (fire-and-forget)
+                getUserIP().then(function(ip) {
+                    apiCall('logKeywordAccess', {
+                        keyword: match.keyword,
+                        label: match.label || '',
+                        url: match.url,
+                        ip: ip,
+                        userAgent: navigator.userAgent,
+                        deviceType: getDeviceType()
+                    });
+                });
+
+                submitBtn.innerHTML = origHTML;
+                submitBtn.disabled = false;
+
                 gsap.to('#cardModuli', {
                     opacity: 0, y: -20, duration: 0.4, ease: 'power2.in',
-                    onComplete: () => {
-                        const p1 = 'aHR0cHM6Ly9hYmFsc2Ftb2lwYWQtZG90LmdpdGh1Yi5p';
-                        const p2 = 'by9nZXN0b3JlY3Jpc2ktMjAyNi9tb2R1bG9fUm9zc19ncm91cC8=';
-                        window.location.href = atob(p1 + p2);
-                    }
+                    onComplete: function() { window.location.href = match.url; }
                 });
             } else {
+                submitBtn.innerHTML = origHTML;
+                submitBtn.disabled = false;
                 errorDiv.classList.add('show');
                 gsap.fromTo('#cardModuli', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
             }
