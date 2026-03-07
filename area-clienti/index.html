@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Riservata | Gestore della Crisi</title>
+    <meta name="description" content="Area Riservata - gestoredellacrisi.it">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="entry-page">
+        <!-- Background -->
+        <div class="login-bg-gradient"></div>
+
+        <!-- Logo -->
+        <div class="entry-logo">
+            <span class="logo-mark">gestoredellacrisi.it</span>
+            <div class="logo-subtitle">Area Riservata</div>
+        </div>
+
+        <!-- 3-Section Grid -->
+        <div class="entry-grid">
+
+            <!-- ====== SECTION 1: AREA CLIENTI ====== -->
+            <div class="entry-card" id="cardClienti">
+                <div class="entry-card-icon">
+                    <i data-lucide="briefcase" style="width:28px;height:28px;"></i>
+                </div>
+                <h2 class="entry-card-title">Area Clienti</h2>
+                <p class="entry-card-subtitle">
+                    Accedi per caricare e gestire i tuoi documenti
+                </p>
+
+                <!-- Error -->
+                <div class="login-error" id="clientLoginError">
+                    <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
+                    <span id="clientLoginErrorText"></span>
+                </div>
+
+                <form class="login-form" id="clientLoginForm" onsubmit="handleClientLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="clientEmail">Email</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="mail" class="input-icon" style="width:18px;height:18px;"></i>
+                            <input type="email" id="clientEmail" class="form-input" placeholder="nome@email.com" required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="clientPassword">Password</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="key-round" class="input-icon" style="width:18px;height:18px;"></i>
+                            <input type="password" id="clientPassword" class="form-input" placeholder="La tua password" required autocomplete="current-password">
+                            <button type="button" class="input-toggle" onclick="togglePassword('clientPassword', 'clientEyeIcon')">
+                                <i data-lucide="eye" style="width:18px;height:18px;" id="clientEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" id="clientLoginBtn" style="width:100%;margin-top:8px;">
+                        <span id="clientLoginBtnText">Accedi</span>
+                        <i data-lucide="arrow-right" style="width:18px;height:18px;" id="clientLoginBtnIcon"></i>
+                    </button>
+                </form>
+
+                <div style="text-align:center;margin-top:12px;">
+                    <a href="#" onclick="showForgotPassword(event)" style="font-size:0.8rem;color:var(--color-text-tertiary);">
+                        Ho dimenticato la password
+                    </a>
+                </div>
+
+                <!-- Forgot Password Form (hidden) -->
+                <div id="forgotPasswordForm" class="hidden" style="margin-top:16px;">
+                    <div class="login-error" id="forgotError">
+                        <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
+                        <span id="forgotErrorText"></span>
+                    </div>
+                    <div id="forgotSuccess" class="hidden" style="text-align:center;padding:12px 16px;background:var(--color-success-bg);border:1px solid rgba(22,163,74,0.2);border-radius:var(--radius-sm);margin-bottom:16px;">
+                        <p style="font-size:0.85rem;color:var(--color-success);">
+                            <i data-lucide="check-circle" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>
+                            Se l'email e' registrata, riceverai un link per reimpostare la password.
+                        </p>
+                    </div>
+                    <form onsubmit="handleForgotPassword(event)">
+                        <div class="form-group">
+                            <label class="form-label" for="forgotEmail">Inserisci la tua email</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="mail" class="input-icon" style="width:18px;height:18px;"></i>
+                                <input type="email" id="forgotEmail" class="form-input" placeholder="nome@email.com" required autocomplete="email">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="forgotBtn" style="width:100%;">
+                            <span id="forgotBtnText">Invia link di reset</span>
+                            <i data-lucide="send" style="width:16px;height:16px;"></i>
+                        </button>
+                    </form>
+                    <div style="text-align:center;margin-top:12px;">
+                        <a href="#" onclick="hideForgotPassword(event)" style="font-size:0.8rem;color:var(--color-text-tertiary);">
+                            <i data-lucide="arrow-left" style="width:12px;height:12px;vertical-align:-2px;"></i>
+                            Torna al login
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== SECTION 2: MODULI E DOCUMENTI ====== -->
+            <div class="entry-card" id="cardModuli">
+                <div class="entry-card-icon">
+                    <i data-lucide="file-text" style="width:28px;height:28px;"></i>
+                </div>
+                <h2 class="entry-card-title">Moduli e Documenti</h2>
+                <p class="entry-card-subtitle">
+                    Per accedere a specifici documenti o moduli indica di seguito la parola chiave fornita
+                </p>
+
+                <!-- Error -->
+                <div class="login-error" id="keywordError">
+                    <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
+                    <span id="keywordErrorText">Parola chiave non valida. Verifica e riprova.</span>
+                </div>
+
+                <form class="login-form" onsubmit="handleKeywordAccess(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="keyword">Parola Chiave</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="key" class="input-icon" style="width:18px;height:18px;"></i>
+                            <input type="text" id="keyword" class="form-input" placeholder="Inserisci la parola chiave" required autocomplete="off" spellcheck="false">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">
+                        <span>Accedi</span>
+                        <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- ====== SECTION 3: AREA ADMIN ====== -->
+            <div class="entry-card" id="cardAdmin">
+                <div class="entry-card-icon">
+                    <i data-lucide="shield" style="width:28px;height:28px;"></i>
+                </div>
+                <h2 class="entry-card-title">Area Amministrazione</h2>
+                <p class="entry-card-subtitle">
+                    Accesso riservato agli amministratori del sistema
+                </p>
+
+                <!-- Error -->
+                <div class="login-error" id="adminLoginError">
+                    <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
+                    <span id="adminLoginErrorText"></span>
+                </div>
+
+                <form class="login-form" onsubmit="handleAdminLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="adminUser">Username</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="user" class="input-icon" style="width:18px;height:18px;"></i>
+                            <input type="text" id="adminUser" class="form-input" placeholder="Username" required autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="adminPassword">Password</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="key-round" class="input-icon" style="width:18px;height:18px;"></i>
+                            <input type="password" id="adminPassword" class="form-input" placeholder="Password" required autocomplete="current-password">
+                            <button type="button" class="input-toggle" onclick="togglePassword('adminPassword', 'adminEyeIcon')">
+                                <i data-lucide="eye" style="width:18px;height:18px;" id="adminEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" id="adminLoginBtn" style="width:100%;margin-top:8px;">
+                        <span id="adminLoginBtnText">Accedi</span>
+                        <i data-lucide="arrow-right" style="width:18px;height:18px;" id="adminLoginBtnIcon"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="entry-footer">
+            <a href="https://www.gestoredellacrisi.it/" id="backToSite">
+                <i data-lucide="arrow-left" style="width:14px;height:14px;vertical-align:-2px;"></i>
+                Torna al sito
+            </a>
+            <div class="entry-copyright">gestoredellacrisi.it</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Inizializza icone
+        lucide.createIcons();
+
+        // Se gia' autenticato come cliente, redirect alla dashboard
+        (function() {
+            const session = Auth.getSession();
+            if (session) {
+                window.location.href = 'dashboard.html';
+            }
+        })();
+
+        // Animazione entrata cards
+        gsap.to('.entry-card', {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: 'power3.out',
+            stagger: 0.15,
+            delay: 0.3
+        });
+
+        // Toggle password visibility
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons({ nodes: [icon.parentElement] });
+        }
+
+        // ====== AREA CLIENTI LOGIN ======
+
+        let isClientSubmitting = false;
+
+        async function handleClientLogin(e) {
+            e.preventDefault();
+            if (isClientSubmitting) return;
+
+            const email = document.getElementById('clientEmail').value.trim();
+            const password = document.getElementById('clientPassword').value;
+            const btn = document.getElementById('clientLoginBtn');
+            const btnText = document.getElementById('clientLoginBtnText');
+            const btnIcon = document.getElementById('clientLoginBtnIcon');
+            const errorDiv = document.getElementById('clientLoginError');
+            const errorText = document.getElementById('clientLoginErrorText');
+
+            errorDiv.classList.remove('show');
+
+            isClientSubmitting = true;
+            btn.disabled = true;
+            btnText.textContent = 'Accesso in corso...';
+            btnIcon.style.display = 'none';
+
+            try {
+                const result = await Auth.login(email, password);
+
+                if (result.success) {
+                    gsap.to('#cardClienti', {
+                        opacity: 0, y: -20, duration: 0.4, ease: 'power2.in',
+                        onComplete: () => { window.location.href = 'dashboard.html'; }
+                    });
+                } else {
+                    errorText.textContent = result.error;
+                    errorDiv.classList.add('show');
+                    gsap.fromTo('#cardClienti', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
+                    isClientSubmitting = false;
+                    btn.disabled = false;
+                    btnText.textContent = 'Accedi';
+                    btnIcon.style.display = '';
+                }
+            } catch (err) {
+                errorText.textContent = 'Errore di connessione. Riprova.';
+                errorDiv.classList.add('show');
+                isClientSubmitting = false;
+                btn.disabled = false;
+                btnText.textContent = 'Accedi';
+                btnIcon.style.display = '';
+            }
+        }
+
+        // ====== MODULI E DOCUMENTI (KEYWORD) ======
+
+        function handleKeywordAccess(e) {
+            e.preventDefault();
+            const keyword = document.getElementById('keyword').value.trim().toLowerCase();
+            const errorDiv = document.getElementById('keywordError');
+
+            errorDiv.classList.remove('show');
+
+            if (keyword === 'ross') {
+                // Redirect al questionario Ross Group
+                gsap.to('#cardModuli', {
+                    opacity: 0, y: -20, duration: 0.4, ease: 'power2.in',
+                    onComplete: () => {
+                        const p1 = 'aHR0cHM6Ly9hYmFsc2Ftb2lwYWQtZG90LWdpdGh1Yi5p';
+                        const p2 = 'by9nZXN0b3JlY3Jpc2ktMjAyNi9tb2R1bG9fUm9zc19ncm91cC8=';
+                        window.location.href = atob(p1 + p2);
+                    }
+                });
+            } else {
+                errorDiv.classList.add('show');
+                gsap.fromTo('#cardModuli', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
+            }
+        }
+
+        // ====== AREA ADMIN LOGIN ======
+
+        let isAdminSubmitting = false;
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            if (isAdminSubmitting) return;
+
+            const username = document.getElementById('adminUser').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const btn = document.getElementById('adminLoginBtn');
+            const btnText = document.getElementById('adminLoginBtnText');
+            const btnIcon = document.getElementById('adminLoginBtnIcon');
+            const errorDiv = document.getElementById('adminLoginError');
+            const errorText = document.getElementById('adminLoginErrorText');
+
+            errorDiv.classList.remove('show');
+
+            isAdminSubmitting = true;
+            btn.disabled = true;
+            btnText.textContent = 'Accesso in corso...';
+            btnIcon.style.display = 'none';
+
+            try {
+                const result = await apiCall('adminLogin', { username, password });
+
+                if (result.success) {
+                    sessionStorage.setItem('gdc_admin', 'true');
+                    gsap.to('#cardAdmin', {
+                        opacity: 0, y: -20, duration: 0.4, ease: 'power2.in',
+                        onComplete: () => { window.location.href = 'admin.html'; }
+                    });
+                } else {
+                    errorText.textContent = result.error || 'Credenziali non valide';
+                    errorDiv.classList.add('show');
+                    gsap.fromTo('#cardAdmin', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
+                    isAdminSubmitting = false;
+                    btn.disabled = false;
+                    btnText.textContent = 'Accedi';
+                    btnIcon.style.display = '';
+                }
+            } catch (err) {
+                errorText.textContent = 'Errore di connessione. Riprova.';
+                errorDiv.classList.add('show');
+                isAdminSubmitting = false;
+                btn.disabled = false;
+                btnText.textContent = 'Accedi';
+                btnIcon.style.display = '';
+            }
+        }
+
+        // ====== HO DIMENTICATO LA PASSWORD ======
+
+        function showForgotPassword(e) {
+            e.preventDefault();
+            document.getElementById('clientLoginForm').classList.add('hidden');
+            document.querySelector('#cardClienti > div:nth-last-child(2)').classList.add('hidden'); // forgot link
+            document.getElementById('forgotPasswordForm').classList.remove('hidden');
+            document.getElementById('forgotSuccess').classList.add('hidden');
+            document.getElementById('forgotError').classList.remove('show');
+            document.getElementById('forgotEmail').value = '';
+            lucide.createIcons({ nodes: [document.getElementById('forgotPasswordForm')] });
+        }
+
+        function hideForgotPassword(e) {
+            e.preventDefault();
+            document.getElementById('clientLoginForm').classList.remove('hidden');
+            document.querySelector('#cardClienti > div:nth-last-child(2)').classList.remove('hidden');
+            document.getElementById('forgotPasswordForm').classList.add('hidden');
+        }
+
+        let isForgotSubmitting = false;
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            if (isForgotSubmitting) return;
+
+            const email = document.getElementById('forgotEmail').value.trim();
+            const btn = document.getElementById('forgotBtn');
+            const btnText = document.getElementById('forgotBtnText');
+            const errorDiv = document.getElementById('forgotError');
+            const errorText = document.getElementById('forgotErrorText');
+            const successDiv = document.getElementById('forgotSuccess');
+
+            errorDiv.classList.remove('show');
+            successDiv.classList.add('hidden');
+
+            isForgotSubmitting = true;
+            btn.disabled = true;
+            btnText.textContent = 'Invio in corso...';
+
+            try {
+                const result = await apiCall('requestPasswordReset', { email });
+                // Mostra sempre successo (non rivela se l'email esiste)
+                successDiv.classList.remove('hidden');
+                lucide.createIcons({ nodes: [successDiv] });
+                btn.closest('form').classList.add('hidden');
+            } catch (err) {
+                errorText.textContent = 'Errore di connessione. Riprova.';
+                errorDiv.classList.add('show');
+            }
+
+            isForgotSubmitting = false;
+            btn.disabled = false;
+            btnText.textContent = 'Invia link di reset';
+        }
+
+        // Link torna al sito
+        document.getElementById('backToSite').href = CONFIG.SITE_URL;
+    </script>
+</body>
+</html>
