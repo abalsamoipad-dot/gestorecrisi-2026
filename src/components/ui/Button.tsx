@@ -87,15 +87,15 @@ export function Button({
   const variantStyles: Record<ButtonVariant, { normal: CSSProperties; hover: CSSProperties }> = {
     primary: {
       normal: {
-        background: 'var(--primary-700, #005f73)',
+        background: 'linear-gradient(135deg, #005f73 0%, #0891b2 100%)',
         color: 'var(--white, #ffffff)',
-        boxShadow: 'var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04))',
+        boxShadow: '0 4px 15px rgba(0, 95, 115, 0.3), 0 0 0 1px rgba(72, 202, 228, 0.2)',
       },
       hover: {
-        background: 'linear-gradient(135deg, #005f73 0%, #0891b2 50%, #48cae4 100%)',
+        background: 'linear-gradient(135deg, #0891b2 0%, #48cae4 100%)',
         color: 'var(--white, #ffffff)',
         transform: 'translateY(-2px)',
-        boxShadow: '0 0 40px rgba(72, 202, 228, 0.15), 0 8px 24px rgba(0, 95, 115, 0.2)',
+        boxShadow: '0 0 40px rgba(72, 202, 228, 0.3), 0 8px 24px rgba(0, 95, 115, 0.25), 0 0 0 1px rgba(72, 202, 228, 0.4)',
       },
     },
     outline: {

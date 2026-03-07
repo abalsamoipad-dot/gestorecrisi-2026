@@ -7,6 +7,7 @@ interface AccordionItemProps {
   iconPath?: string;
   isOpen: boolean;
   onToggle: () => void;
+  itemId: string;
 }
 
 // Premium deceleration easing
@@ -17,7 +18,7 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
  * Features category icon, rotating plus/close icon, rich hover effects,
  * and smooth expand/collapse transitions.
  */
-export function AccordionItem({ question, answer, iconPath, isOpen, onToggle }: AccordionItemProps) {
+export function AccordionItem({ question, answer, iconPath, isOpen, onToggle, itemId }: AccordionItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const itemStyle: CSSProperties = {
@@ -116,9 +117,11 @@ export function AccordionItem({ question, answer, iconPath, isOpen, onToggle }: 
       onMouseLeave={() => setIsHovered(false)}
     >
       <button
+        id={`faq-q-${itemId}`}
         style={questionRowStyle}
         onClick={onToggle}
         aria-expanded={isOpen}
+        aria-controls={`faq-a-${itemId}`}
         type="button"
       >
         {iconPath && (
@@ -152,6 +155,9 @@ export function AccordionItem({ question, answer, iconPath, isOpen, onToggle }: 
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
+            id={`faq-a-${itemId}`}
+            role="region"
+            aria-labelledby={`faq-q-${itemId}`}
             key="content"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}

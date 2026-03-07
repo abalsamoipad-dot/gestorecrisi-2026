@@ -139,27 +139,25 @@ export function Hero() {
       {/* Hero Content */}
       <div style={contentWrapperStyle}>
         <h1 style={titleStyle}>
-          <span style={{ display: 'block' }}>
+          <span style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0 0.3em' }}>
             {TITLE_WORDS_LINE1.map((word, i) => (
               <motion.span
                 key={`l1-${i}`}
                 initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.6, delay: 0.3 + i * 0.08, ease: EASE }}
-                style={{ display: 'inline-block', marginRight: '0.3em' }}
               >
                 {word}
               </motion.span>
             ))}
           </span>
-          <span style={{ display: 'block', marginTop: '4px' }}>
+          <span style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0 0.3em', marginTop: '4px' }}>
             {TITLE_WORDS_LINE2_PREFIX.map((word, i) => (
               <motion.span
                 key={`l2-${i}`}
                 initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.6, delay: 0.3 + (line2StartIndex + i) * 0.08, ease: EASE }}
-                style={{ display: 'inline-block', marginRight: '0.3em' }}
               >
                 {word}
               </motion.span>
@@ -168,7 +166,6 @@ export function Hero() {
               initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.6, delay: 0.3 + gradientWordIndex * 0.08, ease: EASE }}
-              style={{ display: 'inline' }}
             >
               <GradientText from="#48cae4" to="#90e0ef" animate>
                 Risanamento e la Continuit&agrave; d&rsquo;Impresa.

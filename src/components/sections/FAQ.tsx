@@ -140,6 +140,7 @@ export function FAQ() {
                   iconPath={item.iconPath}
                   isOpen={openIndex === i}
                   onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+                  itemId={`faq-${i}`}
                 />
               </RevealOnScroll>
             ))}

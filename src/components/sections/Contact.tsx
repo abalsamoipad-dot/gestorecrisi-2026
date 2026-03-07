@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react';
+import { useState, type CSSProperties, type FormEvent } from 'react';
 import { Container } from '@/components/ui/Container';
 import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import { Button } from '@/components/ui/Button';
@@ -48,6 +48,24 @@ export function Contact() {
   const responsiveId = 'contact-layout';
   const emailPhoneId = 'contact-email-phone';
   const criticalitiesId = 'contact-criticalities';
+
+  const [formState, setFormState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormState('submitting');
+    try {
+      const formData = new FormData(e.currentTarget);
+      const response = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        body: formData,
+        headers: { Accept: 'application/json' },
+      });
+      setFormState(response.ok ? 'success' : 'error');
+    } catch {
+      setFormState('error');
+    }
+  };
 
   const sectionStyle: CSSProperties = {
     padding: '100px 0',
@@ -244,14 +262,39 @@ export function Contact() {
 
           {/* RIGHT COLUMN - Form */}
           <RevealOnScroll direction="right">
+            {formState === 'success' ? (
+              <div style={{ ...glassStyle, textAlign: 'center' as const, padding: '60px 48px' }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #059669, #34d399)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 24px',
+                }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <h3 style={{
+                  fontFamily: "var(--font-serif, 'Lora', serif)",
+                  fontSize: '1.5rem', fontWeight: 700, color: '#fff', marginBottom: '12px',
+                }}>Richiesta Inviata con Successo</h3>
+                <p style={{
+                  fontFamily: "var(--font-sans, 'Inter', sans-serif)",
+                  fontSize: '1rem', lineHeight: 1.7,
+                  color: 'rgba(255,255,255,0.7)', marginBottom: '24px',
+                }}>
+                  Grazie per averci contattato. Un nostro esperto analizzer&agrave; le informazioni
+                  fornite e ti ricontatter&agrave; entro 48 ore lavorative per una prima valutazione riservata.
+                </p>
+                <Button variant="outline" onClick={() => setFormState('idle')}>
+                  Invia un&apos;altra richiesta
+                </Button>
+              </div>
+            ) : (
             <div style={glassStyle}>
-              <form
-                action={FORMSPREE_URL}
-                method="POST"
-              >
+              <form onSubmit={handleSubmit}>
                 {/* Hidden fields */}
                 <input type="hidden" name="_subject" value="Nuova richiesta dal sito GestoreCrisi" />
-                <input type="hidden" name="_next" value="/grazie.html" />
                 <input type="text" name="_gotcha" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
 
                 {/* Nome */}
@@ -424,12 +467,24 @@ export function Contact() {
                   </label>
                 </div>
 
+                {/* Error */}
+                {formState === 'error' && (
+                  <p style={{
+                    color: '#ef4444', fontSize: '14px', marginBottom: '16px',
+                    textAlign: 'center' as const,
+                    fontFamily: "var(--font-sans, 'Inter', sans-serif)",
+                  }}>
+                    Si &egrave; verificato un errore. Riprova o contattaci direttamente.
+                  </p>
+                )}
+
                 {/* Submit */}
-                <Button variant="primary" fullWidth type="submit">
-                  Invia Richiesta Riservata
+                <Button variant="primary" fullWidth type="submit" loading={formState === 'submitting'}>
+                  {formState === 'submitting' ? 'Invio in corso...' : 'Invia Richiesta Riservata'}
                 </Button>
               </form>
             </div>
+            )}
           </RevealOnScroll>
         </div>
       </Container>
