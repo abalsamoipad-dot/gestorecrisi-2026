@@ -112,14 +112,31 @@ img {
 }
 
 .logo-mark {
-    font-family: var(--font-logo);
-    font-size: 1.6rem;
+    font-family: var(--font-primary);
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+}
+
+.logo-mark .logo-normal {
+    font-weight: 400;
+    color: var(--color-text);
+}
+
+.logo-mark .logo-bold {
     font-weight: 700;
-    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 0.15em;
+    color: var(--color-accent);
+}
+
+.logo-mark .logo-dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #48cae4;
+    margin-left: 2px;
 }
 
 .logo-text {
@@ -768,9 +785,16 @@ img {
 }
 
 .login-logo .logo-mark {
-    font-size: 2.4rem;
-    display: block;
+    font-size: 1.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
     margin-bottom: 8px;
+}
+
+.login-logo .logo-mark .logo-dot {
+    width: 6px;
+    height: 6px;
 }
 
 .login-logo .logo-subtitle {
@@ -1631,12 +1655,18 @@ img {
 }
 
 .entry-logo .logo-mark {
-    font-family: var(--font-logo);
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--color-accent);
-    display: block;
+    font-family: var(--font-primary);
+    font-size: 1.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
     margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.entry-logo .logo-mark .logo-dot {
+    width: 6px;
+    height: 6px;
 }
 
 .entry-logo .logo-subtitle {
