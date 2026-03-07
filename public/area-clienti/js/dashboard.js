@@ -452,7 +452,7 @@ const Dashboard = {
             <div class="file-item ${item.status}" data-id="${item.id}">
                 <i data-lucide="${getFileIcon(item.file.name)}" class="file-item-icon" style="width:20px;height:20px;"></i>
                 <div class="file-item-info">
-                    <div class="file-item-name">${item.file.name}</div>
+                    <div class="file-item-name">${this.escapeHtml(item.file.name)}</div>
                     <div class="file-item-size">${formatFileSize(item.file.size)}</div>
                 </div>
                 <div class="file-item-status">
@@ -643,28 +643,31 @@ const Dashboard = {
         const categoryLabels = {};
         CONFIG.CATEGORIES.forEach(c => { categoryLabels[c.id] = c.label; });
 
-        tbody.innerHTML = filtered.map(upload => `
+        tbody.innerHTML = filtered.map(upload => {
+            const safeName = this.escapeHtml(upload.originalName || upload.fileName);
+            const safeNameAttr = (upload.originalName || upload.fileName).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return `
             <tr>
                 <td>${formatDate(upload.timestamp)}</td>
                 <td>
                     <div class="flex gap-8" style="align-items:center;">
                         <i data-lucide="${getFileIcon(upload.originalName || upload.fileName)}" style="width:16px;height:16px;color:var(--color-accent);flex-shrink:0;"></i>
-                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;" title="${upload.originalName || upload.fileName}">
-                            ${upload.originalName || upload.fileName}
+                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;" title="${safeNameAttr}">
+                            ${safeName}
                         </span>
                     </div>
                 </td>
-                <td><span class="badge badge-neutral">${categoryLabels[upload.category] || upload.category}</span></td>
+                <td><span class="badge badge-neutral">${this.escapeHtml(categoryLabels[upload.category] || upload.category)}</span></td>
                 <td>
                     <div class="flex gap-8" style="align-items:center;">
                         <span class="badge badge-success">Caricato</span>
-                        <button class="btn-delete-file" onclick="Dashboard.deleteFile('${upload.fileId}', '${(upload.originalName || upload.fileName).replace(/'/g, "\\'")}')" title="Elimina file">
+                        <button class="btn-delete-file" onclick="Dashboard.deleteFile('${upload.fileId}', '${safeNameAttr}')" title="Elimina file">
                             <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                         </button>
                     </div>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
 
         lucide.createIcons({ nodes: [tbody] });
     },

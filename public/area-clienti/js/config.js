@@ -108,11 +108,14 @@ const Toast = {
             info: 'info'
         };
 
+        // Escape HTML per prevenire XSS nel messaggio
+        const safeMessage = this._escapeHtml(message);
+
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `
             <i data-lucide="${icons[type] || 'info'}" class="toast-icon" style="width:20px;height:20px;"></i>
-            <span class="toast-message">${message}</span>
+            <span class="toast-message">${safeMessage}</span>
             <button class="toast-close" onclick="this.parentElement.remove()">
                 <i data-lucide="x" style="width:16px;height:16px;"></i>
             </button>
@@ -134,7 +137,13 @@ const Toast = {
     success(msg) { this.show(msg, 'success'); },
     error(msg) { this.show(msg, 'error', 6000); },
     warning(msg) { this.show(msg, 'warning'); },
-    info(msg) { this.show(msg, 'info'); }
+    info(msg) { this.show(msg, 'info'); },
+
+    _escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 };
 
 // API helper

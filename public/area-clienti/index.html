@@ -407,6 +407,7 @@
 
                 if (result.success) {
                     sessionStorage.setItem('gdc_admin', 'true');
+                    sessionStorage.setItem('gdc_admin_token', result.adminToken || '');
                     gsap.to('#cardAdmin', {
                         opacity: 0, y: -20, duration: 0.4, ease: 'power2.in',
                         onComplete: () => { window.location.href = 'admin.html'; }

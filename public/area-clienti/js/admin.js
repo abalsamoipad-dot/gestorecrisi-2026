@@ -14,10 +14,40 @@ const Admin = {
     clientType: 'persona',
     passwordSetEmail: null,
 
+    // Ritorna il token admin salvato in sessionStorage
+    getAdminToken() {
+        return sessionStorage.getItem('gdc_admin_token') || '';
+    },
+
+    // Helper per chiamate API admin (POST) — include automaticamente adminToken
+    async adminApiCall(action, data = {}) {
+        data.adminToken = this.getAdminToken();
+        const result = await apiCall(action, data);
+        // Se sessione scaduta, forza logout
+        if (!result.success && result.error && result.error.includes('Sessione admin scaduta')) {
+            Toast.error('Sessione admin scaduta. Effettua di nuovo il login.');
+            setTimeout(() => this.logout(), 2000);
+            return result;
+        }
+        return result;
+    },
+
+    // Helper per chiamate API admin (GET) — include automaticamente adminToken
+    async adminApiGet(action, params = {}) {
+        params.adminToken = this.getAdminToken();
+        const result = await apiCall(action, params, 'GET');
+        if (!result.success && result.error && result.error.includes('Sessione admin scaduta')) {
+            Toast.error('Sessione admin scaduta. Effettua di nuovo il login.');
+            setTimeout(() => this.logout(), 2000);
+            return result;
+        }
+        return result;
+    },
+
     // Inizializzazione
     init() {
-        // Controlla se admin gia' autenticato in questa sessione
-        if (sessionStorage.getItem('gdc_admin') === 'true') {
+        // Controlla se admin gia' autenticato in questa sessione (con token valido)
+        if (sessionStorage.getItem('gdc_admin') === 'true' && this.getAdminToken()) {
             this.authenticated = true;
             this.showPanel();
         }
@@ -41,6 +71,7 @@ const Admin = {
         if (result.success) {
             this.authenticated = true;
             sessionStorage.setItem('gdc_admin', 'true');
+            sessionStorage.setItem('gdc_admin_token', result.adminToken || '');
             this.showPanel();
         } else {
             error.classList.remove('hidden');
@@ -67,6 +98,7 @@ const Admin = {
     // Logout admin
     logout() {
         sessionStorage.removeItem('gdc_admin');
+        sessionStorage.removeItem('gdc_admin_token');
         window.location.reload();
     },
 
@@ -97,7 +129,7 @@ const Admin = {
     // ====== CLIENTI ======
 
     async loadClients() {
-        const result = await apiCall('getClients', {}, 'GET');
+        const result = await this.adminApiGet('getClients');
         if (result.success) {
             this.clients = result.clients || [];
             this.renderClients();
@@ -136,7 +168,10 @@ const Admin = {
                 (a.cognome + ' ' + a.nome).toLowerCase().localeCompare((b.cognome + ' ' + b.nome).toLowerCase())
             );
             sorted.forEach(c => {
-                filterSelect.innerHTML += `<option value="${c.email}">${c.cognome} ${c.nome}</option>`;
+                const opt = document.createElement('option');
+                opt.value = c.email;
+                opt.textContent = c.cognome + ' ' + c.nome;
+                filterSelect.appendChild(opt);
             });
             if (currentVal) filterSelect.value = currentVal;
         }
@@ -152,7 +187,10 @@ const Admin = {
             sorted.forEach(c => {
                 const isActive = c.active === true || c.active === 'TRUE';
                 if (isActive) {
-                    taskClientSelect.innerHTML += `<option value="${c.email}">${c.cognome} ${c.nome}</option>`;
+                    const opt = document.createElement('option');
+                    opt.value = c.email;
+                    opt.textContent = c.cognome + ' ' + c.nome;
+                    taskClientSelect.appendChild(opt);
                 }
             });
             if (currentVal) taskClientSelect.value = currentVal;
@@ -193,15 +231,15 @@ const Admin = {
                 <td>
                     <div style="display:flex;align-items:center;gap:10px;">
                         <div style="width:36px;height:36px;border-radius:50%;background:var(--color-accent-glow);display:flex;align-items:center;justify-content:center;color:var(--color-accent);font-weight:600;font-size:0.8rem;flex-shrink:0;">
-                            ${(client.nome || '?')[0]}${(client.cognome || '?')[0]}
+                            ${this.escapeHtml((client.nome || '?')[0])}${this.escapeHtml((client.cognome || '?')[0])}
                         </div>
                         <div>
-                            <div style="color:var(--color-text);font-weight:500;">${client.cognome} ${client.nome}</div>
-                            <div style="font-size:0.75rem;color:var(--color-text-tertiary);">${client.email}</div>
+                            <div style="color:var(--color-text);font-weight:500;">${this.escapeHtml(client.cognome)} ${this.escapeHtml(client.nome)}</div>
+                            <div style="font-size:0.75rem;color:var(--color-text-tertiary);">${this.escapeHtml(client.email)}</div>
                         </div>
                     </div>
                 </td>
-                <td class="hide-mobile">${client.telefono || '-'}</td>
+                <td class="hide-mobile">${this.escapeHtml(client.telefono || '-')}</td>
                 <td>
                     <span class="badge ${isActive ? 'badge-success' : 'badge-error'}">
                         ${isActive ? 'Attivo' : 'Disattivo'}
@@ -344,7 +382,7 @@ const Admin = {
         if (this.editingClient) {
             if (!data.password) delete data.password;
             data.originalEmail = this.editingClient;
-            result = await apiCall('updateClient', data);
+            result = await this.adminApiCall('updateClient', data);
         } else {
             if (!data.password) {
                 errorText.textContent = 'La password e\' obbligatoria';
@@ -353,7 +391,7 @@ const Admin = {
                 btn.querySelector('span').textContent = 'Salva';
                 return;
             }
-            result = await apiCall('createClient', data);
+            result = await this.adminApiCall('createClient', data);
         }
 
         if (result.success) {
@@ -371,7 +409,7 @@ const Admin = {
 
     // Toggle stato attivo/disattivo
     async toggleClientStatus(email, active) {
-        const result = await apiCall('updateClient', { email, active });
+        const result = await this.adminApiCall('updateClient', { email, active });
         if (result.success) {
             Toast.success(`Cliente ${active ? 'attivato' : 'disattivato'}`);
             this.loadClients();
@@ -397,7 +435,7 @@ const Admin = {
     },
 
     async deleteClient(email) {
-        const result = await apiCall('deleteClient', { email });
+        const result = await this.adminApiCall('deleteClient', { email });
         if (result.success) {
             Toast.success('Cliente eliminato');
             this.hideDeleteModal();
@@ -481,7 +519,7 @@ const Admin = {
         btn.querySelector('span').textContent = 'Salvataggio...';
 
         try {
-            const result = await apiCall('adminSetPassword', {
+            const result = await this.adminApiCall('adminSetPassword', {
                 email: this.passwordSetEmail,
                 newPassword: password,
                 sendEmail: sendEmail,
@@ -508,7 +546,7 @@ const Admin = {
     // ====== TASKS ======
 
     async loadTasks() {
-        const result = await apiCall('getTasks', {}, 'GET');
+        const result = await this.adminApiGet('getTasks');
         if (result.success) {
             this.tasks = result.tasks || [];
             this.renderAdminTasks();
@@ -559,7 +597,7 @@ const Admin = {
                     <div class="task-meta">
                         <span class="task-meta-item">
                             <i data-lucide="user" style="width:12px;height:12px;"></i>
-                            ${clientName}
+                            ${this.escapeHtml(clientName)}
                         </span>
                         <span class="task-meta-item">
                             <i data-lucide="clock" style="width:12px;height:12px;"></i>
@@ -633,7 +671,7 @@ const Admin = {
             const client = this.clients.find(c => c.email === clientEmail);
             const clientName = client ? `${client.cognome} ${client.nome}` : clientEmail;
 
-            const result = await apiCall('createTask', {
+            const result = await this.adminApiCall('createTask', {
                 clientEmail,
                 clientName,
                 description,
@@ -662,7 +700,7 @@ const Admin = {
         if (!confirm('Sei sicuro di voler eliminare questo task?')) return;
 
         try {
-            const result = await apiCall('deleteTask', { taskId });
+            const result = await this.adminApiCall('deleteTask', { taskId });
             if (result.success) {
                 Toast.success('Task eliminato');
                 this.loadTasks();
@@ -677,7 +715,7 @@ const Admin = {
     // ====== LOG CARICAMENTI ======
 
     async loadLogs() {
-        const result = await apiCall('getUploadLogs', {}, 'GET');
+        const result = await this.adminApiGet('getUploadLogs');
         if (result.success) {
             this.uploadLogs = result.logs || [];
             this.renderLogs();
@@ -716,11 +754,11 @@ const Admin = {
             return `
             <tr>
                 <td style="font-size:0.8rem;white-space:nowrap;">${dateDisplay}</td>
-                <td style="color:var(--color-text);font-weight:500;">${log.clientName || log.clientEmail || '-'}</td>
-                <td style="max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${log.originalName || log.fileName || ''}">
-                    ${log.originalName || log.fileName || '-'}
+                <td style="color:var(--color-text);font-weight:500;">${this.escapeHtml(log.clientName || log.clientEmail || '-')}</td>
+                <td style="max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${this.escapeHtml(log.originalName || log.fileName || '')}">
+                    ${this.escapeHtml(log.originalName || log.fileName || '-')}
                 </td>
-                <td><span class="badge badge-neutral">${categoryLabels[log.category] || log.category || '-'}</span></td>
+                <td><span class="badge badge-neutral">${this.escapeHtml(categoryLabels[log.category] || log.category || '-')}</span></td>
                 <td>
                     ${log.fileId ? `<a href="https://drive.google.com/file/d/${log.fileId}/view" target="_blank" class="btn btn-icon btn-ghost btn-sm" title="Apri su Drive" style="color:var(--color-accent);"><i data-lucide="external-link" style="width:14px;height:14px;"></i></a>` : '-'}
                 </td>
@@ -740,7 +778,7 @@ const Admin = {
     settings: {},
 
     async loadSettings() {
-        const result = await apiCall('getSettings', {}, 'GET');
+        const result = await this.adminApiGet('getSettings');
         if (result.success) {
             this.settings = result.settings || {};
             this.renderSettings();
@@ -797,7 +835,7 @@ const Admin = {
         btn.disabled = true;
         btn.querySelector('span').textContent = 'Salvataggio...';
 
-        const result = await apiCall('updateSettings', {
+        const result = await this.adminApiCall('updateSettings', {
             settings: {
                 notification_email: email,
                 allowed_extensions: this.settings.allowed_extensions
@@ -973,7 +1011,7 @@ const Admin = {
     },
 
     async saveKeywordsToBackend() {
-        const result = await apiCall('updateKeywords', { keywords: this.keywords });
+        const result = await this.adminApiCall('updateKeywords', { keywords: this.keywords });
 
         if (result.success) {
             Toast.success('Parole chiave aggiornate');
@@ -1050,10 +1088,10 @@ const Admin = {
         tbody.innerHTML = docs.map(doc => `
             <tr>
                 <td style="font-size:0.8rem;white-space:nowrap;">${formatDate(doc.timestamp)}</td>
-                <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--color-text);" title="${doc.originalName || doc.fileName}">
-                    ${doc.originalName || doc.fileName}
+                <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--color-text);" title="${this.escapeHtml(doc.originalName || doc.fileName)}">
+                    ${this.escapeHtml(doc.originalName || doc.fileName)}
                 </td>
-                <td><span class="badge badge-neutral">${categoryLabels[doc.category] || doc.category}</span></td>
+                <td><span class="badge badge-neutral">${this.escapeHtml(categoryLabels[doc.category] || doc.category)}</span></td>
                 <td>
                     ${doc.fileId ? `<a href="https://drive.google.com/file/d/${doc.fileId}/view" target="_blank" class="btn btn-icon btn-ghost btn-sm" title="Apri su Drive" style="color:var(--color-accent);"><i data-lucide="external-link" style="width:14px;height:14px;"></i></a>` : '-'}
                 </td>
@@ -1105,7 +1143,7 @@ const Admin = {
             CONFIG.CATEGORIES.forEach(c => { categoryLabels[c.id] = c.label; });
             const missingLabels = selectedCategories.map(id => categoryLabels[id] || id);
 
-            const result = await apiCall('sendMissingDocsEmail', {
+            const result = await this.adminApiCall('sendMissingDocsEmail', {
                 email: this.docsClientEmail,
                 clientName: `${client.cognome} ${client.nome}`,
                 missingCategories: missingLabels

@@ -52,24 +52,29 @@ function doGet(e) {
   let result;
   try {
     switch (action) {
+      // Admin-only GET endpoints (richiedono adminToken)
       case 'getClients':
-        result = getClients();
-        break;
-      case 'getUploadHistory':
-        result = getUploadHistory(params);
+        result = requireAdminGet(params) || getClients();
         break;
       case 'getUploadLogs':
-        result = getUploadLogs();
+        result = requireAdminGet(params) || getUploadLogs();
         break;
       case 'getTasks':
-        result = getTasks();
+        result = requireAdminGet(params) || getTasks();
+        break;
+      case 'getSettings':
+        result = requireAdminGet(params) || getSettings();
+        break;
+
+      // Client GET endpoints (richiedono token cliente)
+      case 'getUploadHistory':
+        result = getUploadHistory(params);
         break;
       case 'getClientTasks':
         result = getClientTasks(params);
         break;
-      case 'getSettings':
-        result = getSettings();
-        break;
+
+      // Public GET endpoints
       case 'getKeywords':
         result = getKeywords();
         break;
@@ -122,20 +127,20 @@ function doPost(e) {
         result = adminLogin(data);
         break;
 
-      // Clients
+      // Clients (admin-only)
       case 'createClient':
-        result = createClient(data);
+        result = requireAdmin(data) || createClient(data);
         break;
       case 'updateClient':
-        result = updateClient(data);
+        result = requireAdmin(data) || updateClient(data);
         break;
       case 'deleteClient':
-        result = deleteClient(data);
+        result = requireAdmin(data) || deleteClient(data);
         break;
 
-      // Password Management
+      // Password Management (admin-only)
       case 'adminSetPassword':
-        result = adminSetPassword(data);
+        result = requireAdmin(data) || adminSetPassword(data);
         break;
 
       // Upload
@@ -151,31 +156,31 @@ function doPost(e) {
 
       // Tasks
       case 'createTask':
-        result = createTask(data);
+        result = requireAdmin(data) || createTask(data);
         break;
       case 'completeTask':
         result = completeTask(data);
         break;
       case 'deleteTask':
-        result = deleteTask(data);
+        result = requireAdmin(data) || deleteTask(data);
         break;
 
-      // Settings
+      // Settings (admin-only)
       case 'updateSettings':
-        result = updateSettings(data);
+        result = requireAdmin(data) || updateSettings(data);
         break;
 
-      // Keywords
+      // Keywords (admin-only per update)
       case 'updateKeywords':
-        result = updateKeywords(data);
+        result = requireAdmin(data) || updateKeywords(data);
         break;
       case 'logKeywordAccess':
         result = logKeywordAccess(data);
         break;
 
-      // Email documenti mancanti
+      // Email documenti mancanti (admin-only)
       case 'sendMissingDocsEmail':
-        result = sendMissingDocsEmail(data);
+        result = requireAdmin(data) || sendMissingDocsEmail(data);
         break;
 
       default:
@@ -226,6 +231,26 @@ function findClientRow(email) {
     }
   }
   return null;
+}
+
+/**
+ * Recupera le estensioni file consentite dalle impostazioni.
+ * Fallback a lista default se non configurate.
+ */
+function getAllowedExtensions() {
+  try {
+    const sheet = getSheet(SHEET_SETTINGS);
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === 'allowed_extensions') {
+        return (data[i][1] || '').split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean);
+      }
+    }
+  } catch (err) {
+    Logger.log('Errore lettura estensioni: ' + err.message);
+  }
+  // Fallback default
+  return ['pdf', 'doc', 'docx', 'csv', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
 }
 
 function validateToken(token) {
@@ -444,11 +469,64 @@ function adminLogin(data) {
   // Controlla se il foglio ha dati (oltre all'header)
   for (let i = 1; i < rows.length; i++) {
     if (rows[i][0] === username && rows[i][1] === password) {
-      return { success: true };
+      // Genera token admin
+      const adminToken = generateToken();
+      const expiry = new Date();
+      expiry.setHours(expiry.getHours() + 8); // 8 ore
+
+      // Salva token (colonna C = Token, D = Expiry)
+      sheet.getRange(i + 1, 3).setValue(adminToken);
+      sheet.getRange(i + 1, 4).setValue(expiry.toISOString());
+
+      return { success: true, adminToken: adminToken };
     }
   }
 
   return { success: false, error: 'Credenziali non valide' };
+}
+
+/**
+ * Valida il token admin. Ritorna true se valido, false altrimenti.
+ */
+function validateAdminToken(token) {
+  if (!token) return false;
+
+  const sheet = getSheet(SHEET_ADMIN);
+  const rows = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][2] === token) {
+      const expiry = new Date(rows[i][3]);
+      if (expiry > new Date()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Helper: verifica admin auth per POST (token nel body JSON).
+ * Ritorna oggetto errore se non valido, null se OK.
+ */
+function requireAdmin(data) {
+  const token = data.adminToken || data.admin_token || '';
+  if (!validateAdminToken(token)) {
+    return { success: false, error: 'Sessione admin scaduta. Effettua di nuovo il login.' };
+  }
+  return null; // OK
+}
+
+/**
+ * Helper: verifica admin auth per GET (token nei query params).
+ * Ritorna oggetto errore se non valido, null se OK.
+ */
+function requireAdminGet(params) {
+  const token = params.adminToken || params.admin_token || '';
+  if (!validateAdminToken(token)) {
+    return { success: false, error: 'Sessione admin scaduta. Effettua di nuovo il login.' };
+  }
+  return null; // OK
 }
 
 // ===================== GESTIONE CLIENTI =====================
@@ -651,7 +729,7 @@ function adminSetPassword(data) {
             </div>
             ${mustChangePassword ? '<p><strong>Al prossimo accesso ti verra\' chiesto di scegliere una nuova password.</strong></p>' : ''}
             <p>
-              <a href="' + AREA_CLIENTI_URL + '" style="display:inline-block;padding:12px 24px;background:#005f73;color:white;text-decoration:none;border-radius:25px;">
+              <a href="${AREA_CLIENTI_URL}" style="display:inline-block;padding:12px 24px;background:#005f73;color:white;text-decoration:none;border-radius:25px;">
                 Accedi all'Area Clienti
               </a>
             </p>
@@ -682,6 +760,19 @@ function uploadFile(data) {
   const user = validateToken(token);
   if (!user) {
     return { success: false, error: 'Sessione scaduta. Effettua di nuovo il login.' };
+  }
+
+  // Valida estensione file lato server
+  const originalName = data.originalName || fileName || '';
+  const ext = originalName.split('.').pop().toLowerCase();
+  const allowedExtensions = getAllowedExtensions();
+  if (!allowedExtensions.includes(ext)) {
+    return { success: false, error: 'Formato file .' + ext + ' non consentito' };
+  }
+
+  // Valida nome file (blocca path traversal)
+  if (originalName.includes('..') || originalName.includes('/') || originalName.includes('\\')) {
+    return { success: false, error: 'Nome file non valido' };
   }
 
   // Trova cartella cliente
@@ -1441,9 +1532,9 @@ function setupInitial() {
   sheet = ss.getSheetByName(SHEET_ADMIN);
   if (!sheet) sheet = ss.insertSheet(SHEET_ADMIN);
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Username', 'Password']);
-    sheet.appendRow(['admin', 'test.2026']); // Credenziali iniziali
-    sheet.getRange(1, 1, 1, 2).setFontWeight('bold').setBackground('#005f73').setFontColor('white');
+    sheet.appendRow(['Username', 'Password', 'Token', 'TokenExpiry']);
+    sheet.appendRow(['admin', 'test.2026', '', '']); // Credenziali iniziali
+    sheet.getRange(1, 1, 1, 4).setFontWeight('bold').setBackground('#005f73').setFontColor('white');
   }
 
   // 6. Foglio ResetTokens
