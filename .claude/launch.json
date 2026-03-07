@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "/tmp/node-v20.18.1-darwin-arm64/bin/npx",
+      "runtimeArgs": ["vite", "--port", "5173"],
+      "port": 5173,
+      "env": {
+        "PATH": "/tmp/node-v20.18.1-darwin-arm64/bin:/usr/bin:/bin"
+      }
+    }
+  ]
+}
