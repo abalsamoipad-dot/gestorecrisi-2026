@@ -209,11 +209,45 @@
         // Inizializza icone
         lucide.createIcons();
 
-        // Se gia' autenticato come cliente, redirect alla dashboard
+        // Se gia' autenticato come cliente, mostra stato "Bentornato" nella card
         (function() {
             const session = Auth.getSession();
             if (session) {
-                window.location.href = 'dashboard.html';
+                const card = document.getElementById('cardClienti');
+                const form = document.getElementById('clientLoginForm');
+                const forgotLink = card.querySelector('div[style*="text-align:center"]');
+                const errorDiv = document.getElementById('clientLoginError');
+                const forgotForm = document.getElementById('forgotPasswordForm');
+
+                // Nascondi form login, link forgot e errori
+                if (form) form.style.display = 'none';
+                if (forgotLink) forgotLink.style.display = 'none';
+                if (errorDiv) errorDiv.style.display = 'none';
+                if (forgotForm) forgotForm.style.display = 'none';
+
+                // Mostra stato "Bentornato"
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.style.cssText = 'text-align:center;margin-top:16px;';
+                welcomeDiv.innerHTML = `
+                    <div style="margin-bottom:16px;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:var(--color-primary-bg, #e8f4f8);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                            <i data-lucide="user-check" style="width:26px;height:26px;color:var(--color-primary, #1a6b7a);"></i>
+                        </div>
+                        <p style="font-size:1rem;font-weight:600;color:var(--color-text-primary);">Bentornato, ${Auth._escapeText(session.nome)}</p>
+                        <p style="font-size:0.82rem;color:var(--color-text-tertiary);margin-top:2px;">${Auth._escapeText(session.email)}</p>
+                    </div>
+                    <a href="dashboard.html" class="btn btn-primary btn-lg" style="width:100%;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
+                        <span>Vai alla Dashboard</span>
+                        <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+                    </a>
+                    <div style="margin-top:12px;">
+                        <a href="#" onclick="clientLogoutAndShowLogin(event)" style="font-size:0.8rem;color:var(--color-text-tertiary);">
+                            Accedi con un altro account
+                        </a>
+                    </div>
+                `;
+                card.appendChild(welcomeDiv);
+                lucide.createIcons({ nodes: [welcomeDiv] });
             }
         })();
 
@@ -485,6 +519,14 @@
             isForgotSubmitting = false;
             btn.disabled = false;
             btnText.textContent = 'Invia link di reset';
+        }
+
+        // Logout e mostra form login (per "Accedi con un altro account")
+        function clientLogoutAndShowLogin(e) {
+            e.preventDefault();
+            Auth.clearSession();
+            // Ricarica la pagina per mostrare il form login
+            window.location.reload();
         }
 
         // Link torna al sito

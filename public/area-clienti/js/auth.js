@@ -92,5 +92,17 @@ const Auth = {
         const session = this.getSession();
         if (!session) return '';
         return `${session.nome} ${session.cognome}`;
+    },
+
+    // Escape HTML per prevenire XSS
+    _escapeText(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    },
+
+    // Logout senza redirect (per uso in index.html)
+    clearSession() {
+        localStorage.removeItem(CONFIG.SESSION_KEY);
     }
 };
