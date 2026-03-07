@@ -121,15 +121,6 @@ export default function Footer() {
             <a href="cookie-policy.html" style={linkStyle}>
               Cookie Policy
             </a>
-            <span style={separatorStyle} aria-hidden="true">|</span>
-            <a
-              href="https://form.agid.gov.it/view/0c188080-3501-11ee-b7ba-bba6d9c8f444"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={linkStyle}
-            >
-              Dichiarazione di Accessibilit&agrave;
-            </a>
           </nav>
 
           {/* Trust Badges */}
@@ -145,13 +136,6 @@ export default function Footer() {
                 <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               Dati Protetti
-            </span>
-            <span style={badgeStyle}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 16v-4M12 8h.01" />
-              </svg>
-              EAA 2025
             </span>
           </div>
 
