@@ -18,7 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css?v=4">
+    <link rel="stylesheet" href="css/style.css?v=5">
 </head>
 <body>
     <div class="entry-page">
@@ -148,32 +148,45 @@
                 </form>
             </div>
 
-            <!-- ====== SECTION 3: PROFESSIONISTI + ADMIN ====== -->
-            <div class="entry-card entry-card--dual" id="cardProfessionisti">
-                <!-- Sezione Professionisti -->
-                <div class="entry-card-section">
-                    <div class="entry-card-icon">
-                        <i data-lucide="calendar-check" style="width:28px;height:28px;"></i>
-                    </div>
-                    <h2 class="entry-card-title">Area Professionisti</h2>
-                    <p class="entry-card-subtitle">Strumenti per i Professionisti del Network</p>
-                    <a href="https://scadenziario-lg.onrender.com" target="_blank" rel="noopener" class="btn btn-primary btn-lg" style="width:100%;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
-                        <span>Accedi alla Piattaforma</span>
-                        <i data-lucide="external-link" style="width:18px;height:18px;"></i>
-                    </a>
+            <!-- ====== SECTION 3: AREA PROFESSIONISTI (login diretto Scadenziario) ====== -->
+            <div class="entry-card" id="cardProfessionisti">
+                <div class="entry-card-icon">
+                    <i data-lucide="calendar-check" style="width:28px;height:28px;"></i>
                 </div>
-                <!-- Sezione Amministrazione -->
-                <div class="entry-card-section">
-                    <div class="entry-card-icon">
-                        <i data-lucide="shield" style="width:28px;height:28px;"></i>
+                <h2 class="entry-card-title">Area Professionisti</h2>
+                <p class="entry-card-subtitle">Strumenti per i Professionisti del Network</p>
+
+                <!-- Error -->
+                <div class="login-error" id="proLoginError">
+                    <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
+                    <span id="proLoginErrorText"></span>
+                </div>
+
+                <form class="login-form" action="https://scadenziario-lg.onrender.com/login" method="POST" target="_blank">
+                    <div class="form-group">
+                        <label class="form-label" for="proEmail">Email</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="mail" class="input-icon" style="width:18px;height:18px;"></i>
+                            <input type="email" id="proEmail" name="email" class="form-input" placeholder="nome@email.com" required autocomplete="email">
+                        </div>
                     </div>
-                    <h2 class="entry-card-title">Area Amministrazione</h2>
-                    <p class="entry-card-subtitle">Pannello di controllo del sistema</p>
-                    <a href="admin.html" class="btn btn-primary btn-lg" style="width:100%;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
-                        <span>Pannello Admin</span>
+
+                    <div class="form-group">
+                        <label class="form-label" for="proPassword">Password</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="key-round" class="input-icon" style="width:18px;height:18px;"></i>
+                            <input type="password" id="proPassword" name="password" class="form-input" placeholder="La tua password" required autocomplete="current-password">
+                            <button type="button" class="input-toggle" onclick="togglePassword('proPassword', 'proEyeIcon')">
+                                <i data-lucide="eye" style="width:18px;height:18px;" id="proEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">
+                        <span>Accedi</span>
                         <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
-                    </a>
-                </div>
+                    </button>
+                </form>
             </div>
         </div>
 
