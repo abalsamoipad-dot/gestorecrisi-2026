@@ -18,7 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
     <div class="entry-page">
@@ -148,31 +148,30 @@
                 </form>
             </div>
 
-            <!-- ====== SECTION 3: CARD COMBINATA ====== -->
-            <div class="entry-card entry-card--combined" id="cardCombinato">
-                <!-- Sezione superiore: Area Professionisti -->
+            <!-- ====== SECTION 3: PROFESSIONISTI + ADMIN ====== -->
+            <div class="entry-card entry-card--dual" id="cardProfessionisti">
+                <!-- Sezione Professionisti -->
                 <div class="entry-card-section">
                     <div class="entry-card-icon">
-                        <i data-lucide="calendar-check" style="width:24px;height:24px;"></i>
+                        <i data-lucide="calendar-check" style="width:28px;height:28px;"></i>
                     </div>
                     <h2 class="entry-card-title">Area Professionisti</h2>
                     <p class="entry-card-subtitle">Strumenti per i Professionisti del Network</p>
-                    <a href="https://app.gestoredellacrisi.it/login" class="btn btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;" target="_blank" rel="noopener noreferrer">
-                        <i data-lucide="external-link" style="width:16px;height:16px;"></i>
+                    <a href="https://scadenziario-lg.onrender.com" target="_blank" rel="noopener" class="btn btn-primary btn-lg" style="width:100%;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
                         <span>Accedi alla Piattaforma</span>
+                        <i data-lucide="external-link" style="width:18px;height:18px;"></i>
                     </a>
                 </div>
-
-                <!-- Sezione inferiore: Area Amministrazione -->
+                <!-- Sezione Amministrazione -->
                 <div class="entry-card-section">
                     <div class="entry-card-icon">
-                        <i data-lucide="shield" style="width:24px;height:24px;"></i>
+                        <i data-lucide="shield" style="width:28px;height:28px;"></i>
                     </div>
                     <h2 class="entry-card-title">Area Amministrazione</h2>
-                    <p class="entry-card-subtitle">Accesso riservato agli amministratori del sistema</p>
-                    <a href="admin.html" class="btn btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
-                        <i data-lucide="log-in" style="width:16px;height:16px;"></i>
+                    <p class="entry-card-subtitle">Pannello di controllo del sistema</p>
+                    <a href="admin.html" class="btn btn-primary btn-lg" style="width:100%;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
                         <span>Pannello Admin</span>
+                        <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
                     </a>
                 </div>
             </div>
