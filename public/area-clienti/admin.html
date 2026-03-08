@@ -114,10 +114,6 @@
                     <i data-lucide="file-text" style="width:18px;height:18px;"></i>
                     Log Caricamenti
                 </button>
-                <button class="admin-nav-item" data-view="scadenziario" onclick="Admin.navigate('scadenziario')">
-                    <i data-lucide="calendar-check" style="width:18px;height:18px;"></i>
-                    Scadenziario
-                </button>
                 <button class="admin-nav-item" data-view="settings" onclick="Admin.navigate('settings')">
                     <i data-lucide="settings" style="width:18px;height:18px;"></i>
                     Impostazioni
@@ -302,48 +298,6 @@
                         </thead>
                         <tbody id="logsBody"></tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- ====== VIEW: SCADENZIARIO ====== -->
-            <div class="admin-view" id="view-scadenziario">
-                <div class="admin-content-header">
-                    <h2 class="admin-content-title">
-                        <i data-lucide="calendar-check" style="width:22px;height:22px;vertical-align:-4px;margin-right:8px;color:var(--color-accent);"></i>
-                        Scadenziario Liquidazione Giudiziale
-                    </h2>
-                </div>
-
-                <div style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">
-                    <iframe
-                        id="scadenziarioIframe"
-                        src="about:blank"
-                        style="width:100%;min-height:calc(100vh - 80px);border:none;border-radius:var(--radius-md);display:block;"
-                        title="Scadenziario Liquidazione Giudiziale"
-                        allow="clipboard-write"
-                    ></iframe>
-
-                    <!-- Fallback se iframe non carica -->
-                    <div id="scadenziarioFallback" class="hidden" style="text-align:center;padding:60px 24px;">
-                        <div style="width:64px;height:64px;border-radius:50%;background:var(--color-warning-bg);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
-                            <i data-lucide="alert-triangle" style="width:28px;height:28px;color:var(--color-warning);"></i>
-                        </div>
-                        <h3 style="font-size:1.1rem;color:var(--color-text);margin-bottom:8px;">Impossibile caricare lo Scadenziario</h3>
-                        <p style="font-size:0.85rem;color:var(--color-text-secondary);margin-bottom:24px;">
-                            Il servizio potrebbe essere temporaneamente non disponibile. Puoi accedervi direttamente.
-                        </p>
-                        <a href="https://app.gestoredellacrisi.it" target="_blank" rel="noopener" class="btn btn-primary">
-                            <i data-lucide="external-link" style="width:16px;height:16px;"></i>
-                            Apri Scadenziario in nuova scheda
-                        </a>
-                    </div>
-                </div>
-
-                <div style="margin-top:16px;text-align:right;">
-                    <a href="https://app.gestoredellacrisi.it" target="_blank" rel="noopener" style="font-size:0.85rem;color:var(--color-accent);text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-weight:500;">
-                        Apri Scadenziario completo
-                        <i data-lucide="external-link" style="width:14px;height:14px;"></i>
-                    </a>
                 </div>
             </div>
 

@@ -9,7 +9,6 @@ const Admin = {
     tasks: [],
     keywords: [],
     editingKeywordIndex: -1,
-    scadenziarioLoaded: false,
     currentView: 'clients',
     editingClient: null,
     clientType: 'persona',
@@ -137,7 +136,6 @@ const Admin = {
         if (view === 'logs') this.renderLogs();
         if (view === 'tasks') this.renderAdminTasks();
         if (view === 'settings') this.renderKeywords();
-        if (view === 'scadenziario') this.loadScadenziario();
 
         // Chiudi sidebar mobile
         this.closeSidebar();
@@ -1068,46 +1066,6 @@ const Admin = {
             await this.loadKeywords();
             return false;
         }
-    },
-
-    // ====== SCADENZIARIO ======
-
-    loadScadenziario() {
-        if (this.scadenziarioLoaded) return;
-
-        var iframe = document.getElementById('scadenziarioIframe');
-        var fallback = document.getElementById('scadenziarioFallback');
-        if (!iframe) return;
-
-        var scadenziarioUrl = 'https://app.gestoredellacrisi.it/calendario';
-
-        // Timeout: se dopo 15s l'iframe non ha caricato, mostra fallback
-        var loadTimeout = setTimeout(function() {
-            iframe.style.display = 'none';
-            if (fallback) fallback.classList.remove('hidden');
-            if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [fallback] });
-        }, 15000);
-
-        iframe.onload = function() {
-            clearTimeout(loadTimeout);
-            // Verifica se l'iframe ha effettivamente caricato contenuto
-            try {
-                // Accesso cross-origin potrebbe fallire — va bene, significa che ha caricato
-                void iframe.contentWindow.location.href;
-            } catch (e) {
-                // Cross-origin: iframe ha caricato correttamente il sito esterno
-            }
-        };
-
-        iframe.onerror = function() {
-            clearTimeout(loadTimeout);
-            iframe.style.display = 'none';
-            if (fallback) fallback.classList.remove('hidden');
-            if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [fallback] });
-        };
-
-        iframe.src = scadenziarioUrl;
-        this.scadenziarioLoaded = true;
     },
 
     // ====== DOCUMENTI CLIENTE ======
