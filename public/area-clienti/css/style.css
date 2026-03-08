@@ -745,6 +745,7 @@ img {
 .login-page {
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 24px;
@@ -1629,10 +1630,23 @@ img {
     .login-dual-container {
         grid-template-columns: 1fr;
         max-width: 440px;
+        gap: 20px;
     }
 
     .login-card-dual {
-        padding: 32px 24px;
+        padding: 28px 20px;
+    }
+
+    .login-dual-logo {
+        margin-bottom: 24px;
+    }
+
+    .login-dual-logo .logo-mark {
+        font-size: 1.4rem;
+    }
+
+    .login-card-header {
+        margin-bottom: 20px;
     }
 
     /* Admin responsive */
@@ -1658,6 +1672,26 @@ img {
 }
 
 @media (max-width: 480px) {
+    .login-page {
+        padding: 16px;
+    }
+
+    .login-dual-container {
+        gap: 16px;
+    }
+
+    .login-card-dual {
+        padding: 24px 16px;
+    }
+
+    .login-dual-logo .logo-mark {
+        font-size: 1.2rem;
+    }
+
+    .login-dual-logo .logo-subtitle {
+        font-size: 0.7rem;
+    }
+
     .category-grid {
         grid-template-columns: 1fr 1fr;
         gap: 8px;
