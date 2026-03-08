@@ -58,11 +58,15 @@ const Admin = {
                 overlay.style.display = '';
                 overlay.classList.remove('hidden');
             }
-            // Animazione entrata login card (solo se serve il login)
+            // Animazione entrata login cards (dual login)
             if (typeof gsap !== 'undefined') {
-                gsap.fromTo('#adminLoginCard',
+                gsap.fromTo('.login-dual-logo',
+                    { opacity: 0, y: -10 },
+                    { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 }
+                );
+                gsap.fromTo('.login-card-dual',
                     { opacity: 0, y: 20 },
-                    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.2 }
+                    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.2, stagger: 0.15 }
                 );
             }
         }
@@ -92,11 +96,11 @@ const Admin = {
             error.classList.remove('hidden');
             document.getElementById('adminErrorText').textContent =
                 result.error || 'Credenziali non valide';
-            gsap.fromTo('.login-card', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
+            gsap.fromTo('#adminLoginCard', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
         }
 
         btn.disabled = false;
-        btn.querySelector('span').textContent = 'Accedi';
+        btn.querySelector('span').textContent = 'Accedi al Pannello';
     },
 
     // Mostra pannello admin

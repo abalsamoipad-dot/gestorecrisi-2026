@@ -148,63 +148,33 @@
                 </form>
             </div>
 
-            <!-- ====== SECTION 3: AREA ADMIN ====== -->
-            <div class="entry-card" id="cardAdmin">
-                <div class="entry-card-icon">
-                    <i data-lucide="shield" style="width:28px;height:28px;"></i>
-                </div>
-                <h2 class="entry-card-title">Area Amministrazione</h2>
-                <p class="entry-card-subtitle">
-                    Accesso riservato agli amministratori del sistema
-                </p>
-
-                <!-- Error -->
-                <div class="login-error" id="adminLoginError">
-                    <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
-                    <span id="adminLoginErrorText"></span>
-                </div>
-
-                <form class="login-form" onsubmit="handleAdminLogin(event)">
-                    <div class="form-group">
-                        <label class="form-label" for="adminUser">Username</label>
-                        <div class="input-with-icon">
-                            <i data-lucide="user" class="input-icon" style="width:18px;height:18px;"></i>
-                            <input type="text" id="adminUser" class="form-input" placeholder="Username" required autocomplete="username">
-                        </div>
+            <!-- ====== SECTION 3: CARD COMBINATA ====== -->
+            <div class="entry-card entry-card--combined" id="cardCombinato">
+                <!-- Sezione superiore: Area Professionisti -->
+                <div class="entry-card-section">
+                    <div class="entry-card-icon">
+                        <i data-lucide="calendar-check" style="width:24px;height:24px;"></i>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="adminPassword">Password</label>
-                        <div class="input-with-icon">
-                            <i data-lucide="key-round" class="input-icon" style="width:18px;height:18px;"></i>
-                            <input type="password" id="adminPassword" class="form-input" placeholder="Password" required autocomplete="current-password">
-                            <button type="button" class="input-toggle" onclick="togglePassword('adminPassword', 'adminEyeIcon')">
-                                <i data-lucide="eye" style="width:18px;height:18px;" id="adminEyeIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg" id="adminLoginBtn" style="width:100%;margin-top:8px;">
-                        <span id="adminLoginBtnText">Accedi</span>
-                        <i data-lucide="arrow-right" style="width:18px;height:18px;" id="adminLoginBtnIcon"></i>
-                    </button>
-                </form>
-            </div>
-
-            <!-- ====== SECTION 4: AREA PROFESSIONISTI ====== -->
-            <div class="entry-card" id="cardProfessionisti">
-                <div class="entry-card-icon">
-                    <i data-lucide="calendar-check" style="width:28px;height:28px;"></i>
+                    <h2 class="entry-card-title">Area Professionisti</h2>
+                    <p class="entry-card-subtitle">Strumenti per i Professionisti del Network</p>
+                    <a href="https://app.gestoredellacrisi.it/login" class="btn btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;" target="_blank" rel="noopener noreferrer">
+                        <i data-lucide="external-link" style="width:16px;height:16px;"></i>
+                        <span>Accedi alla Piattaforma</span>
+                    </a>
                 </div>
-                <h2 class="entry-card-title">Area Professionisti</h2>
-                <p class="entry-card-subtitle">
-                    Gestione scadenze e adempimenti della Liquidazione Giudiziale
-                </p>
 
-                <a href="https://app.gestoredellacrisi.it/login" class="btn btn-primary btn-lg" style="width:100%;margin-top:auto;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
-                    <span>Accedi</span>
-                    <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
-                </a>
+                <!-- Sezione inferiore: Area Amministrazione -->
+                <div class="entry-card-section">
+                    <div class="entry-card-icon">
+                        <i data-lucide="shield" style="width:24px;height:24px;"></i>
+                    </div>
+                    <h2 class="entry-card-title">Area Amministrazione</h2>
+                    <p class="entry-card-subtitle">Accesso riservato agli amministratori del sistema</p>
+                    <a href="admin.html" class="btn btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+                        <i data-lucide="log-in" style="width:16px;height:16px;"></i>
+                        <span>Pannello Admin</span>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -426,58 +396,6 @@
                 submitBtn.disabled = false;
                 errorDiv.classList.add('show');
                 gsap.fromTo('#cardModuli', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
-            }
-        }
-
-        // ====== AREA ADMIN LOGIN ======
-
-        let isAdminSubmitting = false;
-
-        async function handleAdminLogin(e) {
-            e.preventDefault();
-            if (isAdminSubmitting) return;
-
-            const username = document.getElementById('adminUser').value.trim();
-            const password = document.getElementById('adminPassword').value;
-            const btn = document.getElementById('adminLoginBtn');
-            const btnText = document.getElementById('adminLoginBtnText');
-            const btnIcon = document.getElementById('adminLoginBtnIcon');
-            const errorDiv = document.getElementById('adminLoginError');
-            const errorText = document.getElementById('adminLoginErrorText');
-
-            errorDiv.classList.remove('show');
-
-            isAdminSubmitting = true;
-            btn.disabled = true;
-            btnText.textContent = 'Accesso in corso...';
-            btnIcon.style.display = 'none';
-
-            try {
-                const result = await apiCall('adminLogin', { username, password });
-
-                if (result.success) {
-                    sessionStorage.setItem('gdc_admin', 'true');
-                    sessionStorage.setItem('gdc_admin_token', result.adminToken || '');
-                    gsap.to('#cardAdmin', {
-                        opacity: 0, y: -20, duration: 0.4, ease: 'power2.in',
-                        onComplete: () => { window.location.href = 'admin.html'; }
-                    });
-                } else {
-                    errorText.textContent = result.error || 'Credenziali non valide';
-                    errorDiv.classList.add('show');
-                    gsap.fromTo('#cardAdmin', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
-                    isAdminSubmitting = false;
-                    btn.disabled = false;
-                    btnText.textContent = 'Accedi';
-                    btnIcon.style.display = '';
-                }
-            } catch (err) {
-                errorText.textContent = 'Errore di connessione. Riprova.';
-                errorDiv.classList.add('show');
-                isAdminSubmitting = false;
-                btn.disabled = false;
-                btnText.textContent = 'Accedi';
-                btnIcon.style.display = '';
             }
         }
 

@@ -38,49 +38,96 @@
     <div class="admin-login-overlay" id="adminLoginOverlay" style="display:none;">
         <div class="login-page" style="min-height:100vh;">
             <div class="login-bg-gradient"></div>
-            <div class="login-card" id="adminLoginCard">
-                <div class="login-logo">
-                    <span class="logo-mark"><span class="logo-normal">gestoredella</span><span class="logo-bold">crisi.it</span><span class="logo-dot"></span></span>
-                    <div class="login-tag">
-                        <i data-lucide="shield" style="width:12px;height:12px;"></i>
-                        Pannello Admin
-                    </div>
-                </div>
 
-                <div class="login-error hidden" id="adminError">
-                    <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
-                    <span id="adminErrorText"></span>
-                </div>
+            <!-- Logo comune -->
+            <div class="login-dual-logo">
+                <span class="logo-mark"><span class="logo-normal">gestoredella</span><span class="logo-bold">crisi.it</span><span class="logo-dot"></span></span>
+                <div class="logo-subtitle">Accesso Amministrazione</div>
+            </div>
 
-                <form class="login-form" onsubmit="Admin.login(event)">
-                    <div class="form-group">
-                        <label class="form-label" for="adminUsername">Username</label>
-                        <div class="input-with-icon">
-                            <i data-lucide="user" class="input-icon" style="width:18px;height:18px;"></i>
-                            <input type="text" id="adminUsername" class="form-input" placeholder="Username" required>
+            <!-- Dual Login Cards -->
+            <div class="login-dual-container">
+
+                <!-- CARD 1: Login Admin Sito -->
+                <div class="login-card-dual" id="adminLoginCard">
+                    <div class="login-card-header">
+                        <div class="login-tag">
+                            <i data-lucide="shield" style="width:12px;height:12px;"></i>
+                            Area Amministrazione
                         </div>
+                        <p class="login-card-desc">Gestione sito gestoredellacrisi.it</p>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="adminPassword">Password</label>
-                        <div class="input-with-icon">
-                            <i data-lucide="shield" class="input-icon" style="width:18px;height:18px;"></i>
-                            <input type="password" id="adminPassword" class="form-input" placeholder="Password amministratore" required>
+                    <div class="login-error hidden" id="adminError">
+                        <i data-lucide="alert-circle" style="width:16px;height:16px;"></i>
+                        <span id="adminErrorText"></span>
+                    </div>
+
+                    <form class="login-form" onsubmit="Admin.login(event)">
+                        <div class="form-group">
+                            <label class="form-label" for="adminUsername">Username</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="user" class="input-icon" style="width:18px;height:18px;"></i>
+                                <input type="text" id="adminUsername" class="form-input" placeholder="Username" required>
+                            </div>
                         </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="adminPassword">Password</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="lock" class="input-icon" style="width:18px;height:18px;"></i>
+                                <input type="password" id="adminPassword" class="form-input" placeholder="Password amministratore" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg" id="adminLoginBtn" style="width:100%;margin-top:8px;">
+                            <span>Accedi al Pannello</span>
+                            <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- CARD 2: Login App Calendario (Scadenziario LG) -->
+                <div class="login-card-dual" id="calendarLoginCard">
+                    <div class="login-card-header">
+                        <div class="login-tag">
+                            <i data-lucide="calendar-check" style="width:12px;height:12px;"></i>
+                            Scadenziario LG
+                        </div>
+                        <p class="login-card-desc">Piattaforma gestione scadenze e adempimenti</p>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg" id="adminLoginBtn" style="width:100%;margin-top:8px;">
-                        <span>Accedi</span>
-                        <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
-                    </button>
-                </form>
+                    <form class="login-form" action="https://app.gestoredellacrisi.it/login" method="POST" target="_blank">
+                        <div class="form-group">
+                            <label class="form-label" for="calendarEmail">Email</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="mail" class="input-icon" style="width:18px;height:18px;"></i>
+                                <input type="email" id="calendarEmail" name="email" class="form-input" placeholder="nome@email.com" required autocomplete="email">
+                            </div>
+                        </div>
 
-                <div class="login-footer">
-                    <a href="index.html">
-                        <i data-lucide="arrow-left" style="width:14px;height:14px;vertical-align:-2px;"></i>
-                        Torna all'Area Riservata
-                    </a>
+                        <div class="form-group">
+                            <label class="form-label" for="calendarPassword">Password</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="lock" class="input-icon" style="width:18px;height:18px;"></i>
+                                <input type="password" id="calendarPassword" name="password" class="form-input" placeholder="Password" required autocomplete="current-password">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">
+                            <span>Accedi allo Scadenziario</span>
+                            <i data-lucide="external-link" style="width:18px;height:18px;"></i>
+                        </button>
+                    </form>
                 </div>
+
+            </div>
+
+            <div class="login-footer" style="position:relative;z-index:1;margin-top:28px;">
+                <a href="index.html">
+                    <i data-lucide="arrow-left" style="width:14px;height:14px;vertical-align:-2px;"></i>
+                    Torna all'Area Riservata
+                </a>
             </div>
         </div>
     </div>
