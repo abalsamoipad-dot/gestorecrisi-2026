@@ -1,20 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# gestoredellacrisi.it
 
-# Run and deploy your AI Studio app
+Sito del network Gestore della Crisi: professionisti specializzati nella crisi d'impresa e nella ristrutturazione del debito (Codice della Crisi, D.Lgs. 14/2019).
 
-This contains everything you need to run your app locally.
+## Struttura
 
-View your app in AI Studio: https://ai.studio/apps/drive/1KERO9ona39oXkpgQmxrVu0hq-Gdz-jL_
+- `index.html`: la pagina del sito, statica, con stili e script inline. Librerie di movimento (GSAP, ScrollTrigger, Lenis) e font (Google Fonts) caricati da CDN.
+- `public/img/`: i quattro sfondi fotografici in bianco e nero.
+- `public/area-clienti/`: Area Clienti (login, dashboard, admin) con backend Google Apps Script in `backend/`. Non è linkata dal sito, resta raggiungibile per URL.
+- `public/modulo_Ross_group/`: questionario OAC con relativo Apps Script.
+- `public/privacy.html`, `public/cookie-policy.html`, `robots.txt`, `sitemap.xml`, `CNAME`.
 
-## Run Locally
+## Build e deploy
 
-**Prerequisites:**  Node.js
+La build è Vite (`npm run build`, output in `dist/`): copia `index.html` e il contenuto di `public/`. Il percorso base è `/gestorecrisi-2026/`, cioè l'indirizzo del progetto su GitHub Pages.
 
+Ogni push su `main` esegue il workflow `.github/workflows/deploy.yml`, che costruisce e pubblica su GitHub Pages: https://abalsamoipad-dot.github.io/gestorecrisi-2026/
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Il dominio www.gestoredellacrisi.it è gestito da Aruba e oggi incornicia in un iframe l'indirizzo GitHub Pages.
+
+## Sviluppo locale
+
+```bash
+npm ci
+npm run dev
+```
+
+Nota: `npm ci` non funziona dentro pCloud Drive, che non supporta i link simbolici. Lavorare su una copia in una cartella locale.
+
+Il modulo contatti invia le richieste tramite Formspree.

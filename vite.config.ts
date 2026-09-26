@@ -1,17 +1,11 @@
-import path from 'path';
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 
+// Sito statico: index.html alla radice, asset in public/.
+// base = percorso del progetto su GitHub Pages (abalsamoipad-dot.github.io/gestorecrisi-2026/).
 export default defineConfig({
   base: '/gestorecrisi-2026/',
   server: {
     port: 3000,
     host: '0.0.0.0',
-  },
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
   },
 });
